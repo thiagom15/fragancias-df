@@ -11,7 +11,6 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/catalogue" element={<CataloguePage />} />
       </Routes>
-      <hr className="bg-black text-amber-500" />
       <Footer />
     </div>
   );
