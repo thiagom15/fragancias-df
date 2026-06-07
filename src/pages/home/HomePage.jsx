@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import home from "../home/home.png";
+import home from "../../assets/home.png";
 import CatalogueButton from "../../components/CatalogueButton";
 import FlechaSlideHome from "../../components/FlechaSlideHome";
 import { WhatsAppButton } from "../../components/WhatsAppButton";
@@ -43,18 +43,11 @@ export default function HomePage() {
 
   return (
     <div className="bg-black w-full">
-      {/* Inicio Home */}
       <section className="relative h-screen w-full flex items-center px-10 overflow-hidden">
         <WhatsAppButton />
 
-        {/* Fondo y Capas Inferiores */}
         <div className="absolute inset-0">
-          <img
-            src={home}
-            className="w-full h-full object-cover z-0"
-            alt="Home Perfume"
-          />
-          {/* Overlay con degradado hacia el negro al final para suavizar la transición */}
+          <img src={home} className="w-full h-full object-cover z-0" />
           <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black" />
 
           {init && (
@@ -68,7 +61,6 @@ export default function HomePage() {
 
         <FlechaSlideHome />
 
-        {/* Contenido */}
         <div className="relative z-20 max-w-xl lg:ml-20">
           <p className="tracking-[0.3em] text-sm mb-4 text-amber-500">
             COLECCIÓN EXCLUSIVA 2026
@@ -86,7 +78,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* NUEVA SECCIÓN DE PERFUMES DESTACADOS */}
       <FeaturedSection />
     </div>
   );

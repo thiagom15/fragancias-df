@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { ProductDrawer } from "./ProductDrawer";
 
 export function FeaturedSection() {
   const [perfumes, setPerfumes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedPerfume, setSelectedPerfume] = useState(null);
+
   useEffect(() => {
     async function fetchFeaturedPerfumes() {
       try {
         setLoading(true);
-        // Traemos solo los perfumes marcados como destacados (is_featured = true)
         const { data, error } = await supabase
           .from("perfumes")
           .select("*")
@@ -34,7 +36,6 @@ export function FeaturedSection() {
           Los más <span className="italic text-amber-500">buscados</span>
         </h2>
 
-        {/* Estado de carga */}
         {loading ? (
           <div className="text-white text-center py-20 tracking-widest opacity-50">
             CARGANDO COLECCIÓN...
@@ -46,16 +47,14 @@ export function FeaturedSection() {
                 key={perfume.id}
                 className="group relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50"
               >
-                {/* Imagen del perfume */}
                 <div className="aspect-3/4 flex items-center justify-center overflow-hidden bg-neutral-900">
                   <img
                     src={perfume.image_url}
                     alt={perfume.name}
-                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110 p-4"
+                    className="w-full h-full object-contain p-4 transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>
 
-                {/* Info */}
                 <div className="pb-6 pl-6 pr-6 text-center">
                   <hr className="h-px border-0 bg-linear-to-r from-transparent via-neutral-700 to-transparent mb-6" />
 
@@ -65,11 +64,14 @@ export function FeaturedSection() {
                   <h3 className="text-white text-xl font-serif mb-2">
                     {perfume.name}
                   </h3>
-                  <p className="text-gray-400 text-sm italic mb-4">
-                    {perfume.notes || perfume.description}
+                  <p className="text-gray-400 text-sm italic mb-4 line-clamp-1">
+                    {perfume.notes}
                   </p>
 
-                  <button className="w-full py-2 bg-transparent rounded-2xl border border-white/20 text-white text-xs tracking-widest hover:bg-white hover:text-black transition-colors duration-300">
+                  <button
+                    onClick={() => setSelectedPerfume(perfume)}
+                    className="w-full py-2 bg-transparent rounded-2xl border border-white/20 text-white text-xs tracking-widest hover:bg-white hover:text-black transition-colors duration-300 cursor-pointer"
+                  >
                     VER DETALLES
                   </button>
                 </div>
@@ -78,13 +80,18 @@ export function FeaturedSection() {
           </div>
         )}
 
-        {/* Si no hay perfumes destacados */}
         {!loading && perfumes.length === 0 && (
           <p className="text-center text-gray-500">
             Próximamente nuevas fragancias...
           </p>
         )}
       </div>
+
+      <ProductDrawer
+        isOpen={!!selectedPerfume}
+        onClose={() => setSelectedPerfume(null)}
+        perfume={selectedPerfume}
+      />
     </section>
   );
 }

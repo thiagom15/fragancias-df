@@ -1,52 +1,86 @@
-import { perfumes } from "./Perfumes";
-import PerfumeCard from "../../components/PerfumeCard";
+import { useEffect, useState } from "react";
+import { supabase } from "../../supabaseClient";
 
-export default function Catalogue() {
+export default function CataloguePage() {
+  const [perfumes, setPerfumes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFeaturedPerfumes() {
+      try {
+        setLoading(true);
+
+        const { data, error } = await supabase
+          .from("perfumes")
+          .select("*")
+          .eq("is_featured", false);
+
+        if (error) throw error;
+        setPerfumes(data || []);
+      } catch (error) {
+        console.error("Error cargando perfumes:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchFeaturedPerfumes();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-black text-white px-10 py-32">
-      <section className="bg-black py-20 px-4 md:px-20">
-        <div className="max-w-6xl mx-auto">
-          {" "}
-          {/* Contenedor más estrecho para centrar el diseño */}
-          <h2 className="font-serif text-3xl text-white mb-16 text-center tracking-widest">
-            CATÁLOGO{" "}
-          </h2>
-          {/* Grid con gap-y-20 para la separación que pediste entre filas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
+    <section id="featured" className="bg-black py-22 px-10">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="font-serif text-4xl text-white mb-12 text-center">
+          Los más <span className="italic text-amber-500">buscados</span>
+        </h2>
+
+        {loading ? (
+          <div className="text-white text-center py-20 tracking-widest opacity-50">
+            CARGANDO COLECCIÓN...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
+              <div
+                key={perfume.id}
+                className="group relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50"
+              >
+                <div className="aspect-3/4 flex items-center justify-center overflow-hidden bg-neutral-900">
+                  <img
+                    src={perfume.image_url}
+                    alt={perfume.name}
+                    className="w-full h-full object-contain p-4"
+                  />
+                </div>
+
+                <div className="pb-6 pl-6 pr-6 text-center">
+                  <hr className="h-px border-0 bg-linear-to-r from-transparent via-neutral-700 to-transparent mb-6" />
+
+                  <p className="text-amber-500 text-xs tracking-widest uppercase mb-1">
+                    {perfume.brand}
+                  </p>
+                  <h3 className="text-white text-xl font-serif mb-2">
+                    {perfume.name}
+                  </h3>
+                  <p className="text-gray-400 text-sm italic mb-4">
+                    {perfume.notes || perfume.description}
+                  </p>
+
+                  <button className="w-full py-2 bg-transparent rounded-2xl border border-white/20 text-white text-xs tracking-widest hover:bg-white hover:text-black transition-colors duration-300">
+                    VER DETALLES
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-      </section>
-      <section className="bg-black py-20 px-4 md:px-20">
-        <div className="max-w-6xl mx-auto">
-          {" "}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-            {perfumes.map((perfume) => (
-              <PerfumeCard key={perfume.id} perfume={perfume} />
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+        )}
+
+        {!loading && perfumes.length === 0 && (
+          <p className="text-center text-gray-500">
+            Próximamente nuevas fragancias...
+          </p>
+        )}
+      </div>
+    </section>
   );
 }

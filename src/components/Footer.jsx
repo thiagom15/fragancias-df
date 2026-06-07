@@ -8,13 +8,11 @@ export function Footer() {
     >
       <hr className="h-px border-0 bg-linear-to-r from-transparent via-neutral-700 to-transparent mb-10" />
 
-      {/* Copyright */}
       <div className="flex flex-col md:flex-row justify-between items-center text-sm">
         <p className="tracking-wide">
-          © 2026 DF Fragancias. Todos los derechos reservados.
+          © 2026 Fragancias DF. Todos los derechos reservados.
         </p>
 
-        {/* Redes */}
         <div className="flex gap-6 mt-4 md:mt-0">
           <a
             href="https://wa.me/5492364674352"
@@ -44,3 +42,5 @@ export function Footer() {
     </footer>
   );
 }
+
+export default Footer;

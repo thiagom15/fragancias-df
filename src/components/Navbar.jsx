@@ -8,10 +8,9 @@ export function Navbar() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Función auxiliar para navegar y subir
   const handleNavigate = (path) => {
     navigate(path);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // "smooth" le da un deslizamiento suave
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -75,3 +74,5 @@ export function Navbar() {
     </div>
   );
 }
+
+export default Navbar;

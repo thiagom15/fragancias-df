@@ -14,7 +14,6 @@ export default function FlechaSlideHome() {
       const footerRect = footer.getBoundingClientRect();
       const featuredRect = featured.getBoundingClientRect();
 
-      // Detecta si el footer esta visible
       const footerVisible = footerRect.top < window.innerHeight;
       const featuredVisible = featuredRect.top < window.innerHeight;
 

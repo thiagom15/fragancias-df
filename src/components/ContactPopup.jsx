@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
 export default function ContactPopup({ isOpen, onClose, title, children }) {
-  // Cerrar con la tecla Escape
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
@@ -20,7 +19,6 @@ export default function ContactPopup({ isOpen, onClose, title, children }) {
       />
 
       <div className="relative bg-[#1A1A1A] border border-white/10 w-full max-w-lg rounded-sm shadow-2xl transform transition-all">
-        {/* Titulo y texto */}
         <div className="p-8">
           {title && (
             <h2 className="font-serif text-2xl text-white mb-4 tracking-wide">
@@ -30,7 +28,6 @@ export default function ContactPopup({ isOpen, onClose, title, children }) {
           <div className="text-gray-300">{children}</div>
         </div>
 
-        {/* Boton para Cerrar */}
         <button
           onClick={onClose}
           className="cursor-pointer absolute top-4 right-4 z-50 p-2 text-gray-500 hover:text-amber-500 transition-colors"
@@ -52,7 +49,6 @@ export default function ContactPopup({ isOpen, onClose, title, children }) {
           </svg>
         </button>
 
-        {/* Detalle decorativo inferior */}
         <div className="h-1 w-full bg-linear-to-r from-transparent via-amber-500/50 to-transparent" />
       </div>
     </div>
