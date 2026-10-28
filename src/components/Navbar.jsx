@@ -1,69 +1,369 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import DFLogoNav from "../assets/DFLogoNav.png";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import DFLogoNav from "../assets/DFLogoNav.avif";
 import ContactPopup from "./ContactPopup";
-import { FaInstagram, FaPhoneAlt } from "react-icons/fa";
+import { ProductDrawer } from "./ProductDrawer";
+import { supabase } from "../supabaseClient";
+import {
+  FaInstagram,
+  FaPhoneAlt,
+  FaBars,
+  FaTimes,
+  FaSearch,
+} from "react-icons/fa";
 
 export function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isResultsOpen, setIsResultsOpen] = useState(false);
+  const [selectedPerfume, setSelectedPerfume] = useState(null);
+
+  const navContainerRef = useRef(null);
+  const searchBarRef = useRef(null);
+  const resultsRef = useRef(null);
 
   const handleNavigate = (path) => {
     navigate(path);
+    setIsMobileMenuOpen(false);
+    setIsMobileSearchOpen(false);
+    setIsResultsOpen(false);
+
+    if (location.pathname !== path) {
+      setSearchTerm("");
+      setResults([]);
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        event.target.closest('[role="dialog"]') ||
+        event.target.closest(".fixed.inset-0")
+      ) {
+        return;
+      }
+
+      const isOutsideNav =
+        navContainerRef.current &&
+        !navContainerRef.current.contains(event.target);
+      const isOutsideSearchBar =
+        !searchBarRef.current || !searchBarRef.current.contains(event.target);
+      const isOutsideResults =
+        !resultsRef.current || !resultsRef.current.contains(event.target);
+
+      if (isOutsideNav && isOutsideSearchBar && isOutsideResults) {
+        setIsMobileMenuOpen(false);
+        setIsMobileSearchOpen(false);
+        setIsResultsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setResults([]);
+      setLoading(false);
+      setIsResultsOpen(false);
+      return;
+    }
+
+    setLoading(true);
+    setIsResultsOpen(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase
+          .from("perfumes")
+          .select("*")
+          .ilike("name", `%${searchTerm}%`)
+          .limit(8);
+
+        if (error) throw error;
+        setResults(data || []);
+      } catch (error) {
+        console.error("Error buscando perfumes:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const handleClear = () => {
+    setSearchTerm("");
+    setResults([]);
+    setIsResultsOpen(false);
+  };
+
   return (
-    <div className="fixed flex justify-between items-center px-5 pl-10 pr-10 py-1 w-full z-50 bg-black/60">
-      <Link
-        to="/"
-        className="flex items-center gap-2 h-auto w-auto"
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    <header className="fixed top-0 left-0 w-full z-50 flex flex-col items-center">
+      <div
+        className="w-full px-4 sm:px-6 mt-3 max-w-6xl relative"
+        ref={navContainerRef}
       >
-        <img
-          src={DFLogoNav}
-          className="w-auto h-23 object-contain pr-4"
-          alt="Logo"
-        />
-      </Link>
-      <div className="hidden md:flex items-center gap-12">
-        <button
-          className="relative cursor-pointer text-[11px] tracking-[0.4em] font-light text-white/60 hover:text-white transition-all duration-500 group"
-          onClick={() => handleNavigate("/")}
-        >
-          INICIO
-          <span className="absolute -bottom-2 left-1/2 w-0 h-px bg-amber-500 transition-all duration-500 group-hover:w-full group-hover:left-0" />
-        </button>
-        <button
-          className="relative cursor-pointer text-[11px] tracking-[0.4em] font-light text-white/60 hover:text-white transition-all duration-500 group"
-          onClick={() => handleNavigate("/catalogue")}
-        >
-          CATÁLOGO
-          <span className="absolute -bottom-2 left-1/2 w-0 h-px bg-amber-500 transition-all duration-500 group-hover:w-full group-hover:left-0" />
-        </button>
-        <button
-          className="cursor-pointer px-6 py-2 border border-amber-500/40 text-amber-500 text-[10px] tracking-[0.3em] font-medium rounded-full hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-all duration-500 shadow-[0_0_15px_rgba(245,158,11,0.1)] hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
-          onClick={() => setIsModalOpen(true)}
-        >
-          CONTACTO
-        </button>
+        <nav className="relative flex justify-between items-center gap-4 px-6 py-2.5 w-full bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300">
+          <Link
+            to="/"
+            className="flex items-center gap-2 shrink-0"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavigate("/");
+            }}
+          >
+            <img
+              src={DFLogoNav}
+              className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 hover:scale-105"
+              alt="DF Fragancias Logo"
+            />
+          </Link>
+
+          <div className="hidden sm:flex h-10 w-72 md:w-96 mx-2 items-center bg-neutral-900 border border-white/10 rounded-full px-3 focus-within:border-amber-500/60 transition-colors shrink-0">
+            <FaSearch className="text-amber-500 text-xs ml-1 mr-2 shrink-0" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                if (e.target.value.trim()) setIsResultsOpen(true);
+              }}
+              onFocus={() => {
+                if (searchTerm.trim()) setIsResultsOpen(true);
+              }}
+              placeholder="Buscar perfume..."
+              className="w-full bg-transparent text-white text-xs placeholder-neutral-500 focus:outline-none tracking-wide h-full"
+            />
+            <div className="w-6 flex items-center justify-center shrink-0">
+              {searchTerm && (
+                <button
+                  onClick={handleClear}
+                  className="text-neutral-400 hover:text-white p-1 transition-colors cursor-pointer"
+                  aria-label="Limpiar búsqueda"
+                >
+                  <FaTimes className="text-[10px]" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-6">
+            <button
+              className="relative cursor-pointer text-[11px] tracking-[0.35em] font-light text-neutral-300 hover:text-amber-400 transition-colors duration-300 group"
+              onClick={() => handleNavigate("/")}
+            >
+              INICIO
+              <span className="absolute -bottom-1 left-1/2 w-0 h-px bg-amber-500 transition-all duration-300 group-hover:w-full group-hover:left-0" />
+            </button>
+
+            <button
+              className="relative cursor-pointer text-[11px] tracking-[0.35em] font-light text-neutral-300 hover:text-amber-400 transition-colors duration-300 group"
+              onClick={() => handleNavigate("/catalogue")}
+            >
+              CATÁLOGO
+              <span className="absolute -bottom-1 left-1/2 w-0 h-px bg-amber-500 transition-all duration-300 group-hover:w-full group-hover:left-0" />
+            </button>
+
+            <button
+              className="cursor-pointer px-4 py-1.5 border border-amber-500/40 text-amber-500 text-[10px] tracking-[0.25em] font-medium rounded-full hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              onClick={() => setIsModalOpen(true)}
+            >
+              CONTACTO
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 sm:hidden shrink-0">
+            <button
+              className="text-neutral-300 hover:text-amber-400 text-sm p-2 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+              onClick={() => {
+                const nextState = !isMobileSearchOpen;
+                setIsMobileSearchOpen(nextState);
+                if (nextState) {
+                  setIsMobileMenuOpen(false);
+                  if (searchTerm.trim()) setIsResultsOpen(true);
+                } else {
+                  setIsResultsOpen(false);
+                }
+              }}
+              aria-label="Abrir buscador"
+            >
+              <FaSearch />
+            </button>
+
+            <button
+              className="text-neutral-300 hover:text-white text-lg p-1 cursor-pointer"
+              onClick={() => {
+                const nextState = !isMobileMenuOpen;
+                setIsMobileMenuOpen(nextState);
+                if (nextState) {
+                  setIsMobileSearchOpen(false);
+                  setIsResultsOpen(false);
+                }
+              }}
+              aria-label="Abrir Menú"
+            >
+              {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
+        </nav>
+
+        {isMobileSearchOpen && (
+          <div
+            ref={searchBarRef}
+            className="sm:hidden mt-2 h-11 flex items-center bg-neutral-950/95 backdrop-blur-xl border border-amber-500/40 rounded-full px-4 shadow-xl animate-in fade-in duration-300"
+          >
+            <FaSearch className="text-amber-500 text-xs mr-3 shrink-0" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                if (e.target.value.trim()) setIsResultsOpen(true);
+              }}
+              onFocus={() => {
+                if (searchTerm.trim()) setIsResultsOpen(true);
+              }}
+              placeholder="Buscar perfume..."
+              className="w-full bg-transparent text-white text-xs placeholder-neutral-500 focus:outline-none h-full"
+              autoFocus
+            />
+            <div className="w-6 flex items-center justify-center shrink-0">
+              {searchTerm && (
+                <button onClick={handleClear} className="text-neutral-400 p-1">
+                  <FaTimes className="text-xs" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isMobileMenuOpen && (
+          <div className="lg:hidden mt-2 p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
+            <button
+              className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
+              onClick={() => handleNavigate("/")}
+            >
+              Inicio
+            </button>
+            <button
+              className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
+              onClick={() => handleNavigate("/catalogue")}
+            >
+              Catálogo
+            </button>
+            <button
+              className="w-full py-2.5 border border-amber-500/50 text-amber-500 text-[11px] tracking-[0.25em] font-medium rounded-full bg-amber-500/10 hover:bg-amber-500 hover:text-black transition-all"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsModalOpen(true);
+              }}
+            >
+              CONTACTO
+            </button>
+          </div>
+        )}
+
+        {(loading ||
+          (isResultsOpen &&
+            searchTerm.trim() &&
+            (results.length > 0 || results.length === 0))) && (
+          <div
+            ref={resultsRef}
+            className="absolute left-4 right-4 sm:left-6 sm:right-6 mt-2 bg-neutral-950/95 backdrop-blur-2xl border border-amber-500/40 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 transition-all duration-300"
+          >
+            {loading && (
+              <div className="text-center text-neutral-400 text-xs tracking-widest py-4 uppercase">
+                Buscando fragancias...
+              </div>
+            )}
+
+            {!loading && searchTerm.trim() && results.length === 0 && (
+              <div className="text-center text-neutral-500 text-xs tracking-widest py-4 uppercase">
+                No se encontraron perfumes con "{searchTerm}"
+              </div>
+            )}
+
+            {!loading && results.length > 0 && (
+              <div>
+                <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase mb-3 text-center sm:text-left">
+                  Resultados encontrados ({results.length})
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
+                  {results.map((perfume) => (
+                    <div
+                      key={perfume.id}
+                      onClick={() => {
+                        setSelectedPerfume(perfume);
+                        setIsResultsOpen(false);
+                        setIsMobileSearchOpen(false);
+                      }}
+                      className="group cursor-pointer flex flex-col justify-between relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50 hover:bg-neutral-900/80"
+                    >
+                      <div className="relative aspect-3/4 flex items-center justify-center overflow-hidden bg-neutral-900">
+                        <img
+                          src={perfume.image_url}
+                          alt={perfume.name}
+                          className="w-full h-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+
+                      <div className="bg-black/40 py-1 px-2 text-center text-neutral-500 text-[9px] tracking-wider uppercase border-t border-b border-white/5">
+                        Imágen ilustrativa
+                      </div>
+
+                      <div className="p-3 text-center flex flex-col grow justify-between">
+                        <div>
+                          <p className="text-amber-500 text-[9px] tracking-[0.2em] uppercase mb-1 font-medium">
+                            {perfume.brand}
+                          </p>
+                          <h3 className="text-white text-xs font-serif mb-1 tracking-wide line-clamp-1 group-hover:text-amber-400 transition-colors">
+                            {perfume.name}
+                          </h3>
+                        </div>
+
+                        <div className="text-amber-500 font-bold text-xs tracking-wide">
+                          $
+                          {perfume.price
+                            ? Number(perfume.price).toLocaleString("es-AR")
+                            : "18.000"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <div className="flex gap-4 text-lg">
-        <span>🔍</span>
-      </div>
+
       <ContactPopup
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Contacto"
       >
-        <div className="space-y-2">
-          <p className="text-gray-300 flex items-center gap-2">
+        <div className="space-y-3 p-2">
+          <p className="text-neutral-300 flex items-center gap-3 text-sm">
             <span className="text-amber-500">
               <FaPhoneAlt />
             </span>{" "}
             +54 2364674352
           </p>
-          <p className="text-gray-300 flex items-center gap-2">
+          <p className="text-neutral-300 flex items-center gap-3 text-sm">
             <span className="text-amber-500">
               <FaInstagram />
             </span>{" "}
@@ -71,7 +371,13 @@ export function Navbar() {
           </p>
         </div>
       </ContactPopup>
-    </div>
+
+      <ProductDrawer
+        isOpen={!!selectedPerfume}
+        onClose={() => setSelectedPerfume(null)}
+        perfume={selectedPerfume}
+      />
+    </header>
   );
 }
 

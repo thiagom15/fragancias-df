@@ -5,7 +5,7 @@ import CataloguePage from "./pages/catalogue/CataloguePage";
 
 function App() {
   return (
-    <div className="text-white font-sans">
+    <div className="bg-black text-white font-sans">
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />

@@ -17,12 +17,7 @@ export default function PerfumeCard({ perfume }) {
             {perfume.name}
           </h3>
           <div className="h-px bg-amber-500/30 grow mx-4 self-center" />{" "}
-          <span className="text-amber-500 text-[11px] font-semibold">$120</span>
         </div>
-
-        <p className="text-[9px] text-neutral-500 tracking-[0.25em] uppercase leading-relaxed">
-          {perfume.notes}
-        </p>
       </div>
     </div>
   );

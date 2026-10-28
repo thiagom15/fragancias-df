@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import home from "../../assets/home.png";
+import home from "../../assets/home.avif";
 import CatalogueButton from "../../components/CatalogueButton";
 import FlechaSlideHome from "../../components/FlechaSlideHome";
 import { WhatsAppButton } from "../../components/WhatsAppButton";
@@ -42,13 +42,17 @@ export default function HomePage() {
   };
 
   return (
-    <div className="bg-black w-full">
-      <section className="relative h-screen w-full flex items-center px-10 overflow-hidden">
+    <div className="bg-black w-full overflow-x-hidden">
+      <section className="relative h-screen w-full flex items-center px-6 sm:px-10 lg:px-20 overflow-hidden">
         <WhatsAppButton />
 
         <div className="absolute inset-0">
-          <img src={home} className="w-full h-full object-cover z-0" />
-          <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black" />
+          <img
+            src={home}
+            className="w-full h-full object-cover z-0"
+            alt="DF Fragancias Home"
+          />
+          <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/50 to-black" />
 
           {init && (
             <Particles
@@ -61,20 +65,23 @@ export default function HomePage() {
 
         <FlechaSlideHome />
 
-        <div className="relative z-20 max-w-xl lg:ml-20">
-          <p className="tracking-[0.3em] text-sm mb-4 text-amber-500">
+        <div className="relative z-20 max-w-xl w-full mx-auto sm:mx-0 text-center sm:text-left">
+          <p className="tracking-[0.25em] sm:tracking-[0.3em] text-xs sm:text-sm mb-3 sm:mb-4 text-amber-500 font-medium">
             COLECCIÓN EXCLUSIVA 2026
           </p>
 
-          <h1 className="font-serif text-6xl text-white leading-tight mb-4">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-4">
             El arte de la{" "}
             <span className="italic text-amber-500">fragancia</span>
           </h1>
-          <p className="tracking-[0.3em] text-white text-sm mb-8">
+
+          <p className="tracking-[0.2em] sm:tracking-[0.3em] text-neutral-300 text-xs sm:text-sm mb-8 uppercase">
             EXTRACTOS ÁRABES Y DE DISEÑADOR
           </p>
 
-          <CatalogueButton />
+          <div className="flex justify-center sm:justify-start">
+            <CatalogueButton />
+          </div>
         </div>
       </section>
 

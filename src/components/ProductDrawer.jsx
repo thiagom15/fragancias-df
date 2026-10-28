@@ -70,7 +70,7 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
               onClick={handleWhatsApp}
               className="cursor-pointer w-full mt-12 py-5 bg-amber-500 text-black text-[11px] tracking-[0.3em] font-bold hover:bg-amber-600 transition-all duration-300 uppercase rounded-sm active:scale-[0.98]"
             >
-              Consultar precio y stock
+              Compra por WhatsApp
             </button>
           </div>
         </div>
