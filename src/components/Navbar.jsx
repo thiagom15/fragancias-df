@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import DFLogoNav from "../assets/DFLogoNav.avif";
 import ContactPopup from "./ContactPopup";
 import { ProductDrawer } from "./ProductDrawer";
+import { CartDrawer } from "./CartDrawer";
 import { supabase } from "../supabaseClient";
 import {
   FaInstagram,
@@ -10,47 +11,105 @@ import {
   FaBars,
   FaTimes,
   FaSearch,
+  FaShoppingCart,
 } from "react-icons/fa";
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Estados de modales y drawers
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Estados del buscador
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [selectedPerfume, setSelectedPerfume] = useState(null);
 
+  // Estado del Carrito con LocalStorage
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem("df_cart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("df_cart", JSON.stringify(cartItems));
+    } catch (error) {
+      console.error("Error guardando carrito:", error);
+    }
+  }, [cartItems]);
+
   const navContainerRef = useRef(null);
   const searchBarRef = useRef(null);
   const resultsRef = useRef(null);
+
+  const totalCartCount = cartItems.reduce(
+    (acc, item) => acc + item.quantity,
+    0,
+  );
 
   const handleNavigate = (path) => {
     navigate(path);
     setIsMobileMenuOpen(false);
     setIsMobileSearchOpen(false);
     setIsResultsOpen(false);
-
-    if (location.pathname !== path) {
-      setSearchTerm("");
-      setResults([]);
-    }
-
+    if (location.pathname !== path) handleClear();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleClear = () => {
+    setSearchTerm("");
+    setResults([]);
+    setIsResultsOpen(false);
+  };
+
+  // Funciones del Carrito
+  const handleAddToCart = (perfume) => {
+    setCartItems((prev) => {
+      const exists = prev.find((item) => item.id === perfume.id);
+      if (exists) {
+        return prev.map((item) =>
+          item.id === perfume.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      }
+      return [...prev, { ...perfume, quantity: 1 }];
+    });
+    setIsCartOpen(true);
+  };
+
+  const handleUpdateQuantity = (id, newQuantity) => {
+    if (newQuantity <= 0) return handleRemoveItem(id);
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: newQuantity } : item,
+      ),
+    );
+  };
+
+  const handleRemoveItem = (id) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Clic fuera del buscador / menú
   useEffect(() => {
     function handleClickOutside(event) {
       if (
         event.target.closest('[role="dialog"]') ||
         event.target.closest(".fixed.inset-0")
-      ) {
+      )
         return;
-      }
 
       const isOutsideNav =
         navContainerRef.current &&
@@ -66,13 +125,11 @@ export function Navbar() {
         setIsResultsOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Búsqueda en Supabase
   useEffect(() => {
     if (!searchTerm.trim()) {
       setResults([]);
@@ -104,12 +161,6 @@ export function Navbar() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const handleClear = () => {
-    setSearchTerm("");
-    setResults([]);
-    setIsResultsOpen(false);
-  };
-
   return (
     <header className="fixed top-0 left-0 w-full z-50 flex flex-col items-center">
       <div
@@ -132,34 +183,17 @@ export function Navbar() {
             />
           </Link>
 
+          {/* Buscador Escritorio */}
           <div className="hidden sm:flex h-10 w-72 md:w-96 mx-2 items-center bg-neutral-900 border border-white/10 rounded-full px-3 focus-within:border-amber-500/60 transition-colors shrink-0">
-            <FaSearch className="text-amber-500 text-xs ml-1 mr-2 shrink-0" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                if (e.target.value.trim()) setIsResultsOpen(true);
-              }}
-              onFocus={() => {
-                if (searchTerm.trim()) setIsResultsOpen(true);
-              }}
-              placeholder="Buscar perfume..."
-              className="w-full bg-transparent text-white text-xs placeholder-neutral-500 focus:outline-none tracking-wide h-full"
+            <SearchInput
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              setIsResultsOpen={setIsResultsOpen}
+              handleClear={handleClear}
             />
-            <div className="w-6 flex items-center justify-center shrink-0">
-              {searchTerm && (
-                <button
-                  onClick={handleClear}
-                  className="text-neutral-400 hover:text-white p-1 transition-colors cursor-pointer"
-                  aria-label="Limpiar búsqueda"
-                >
-                  <FaTimes className="text-[10px]" />
-                </button>
-              )}
-            </div>
           </div>
 
+          {/* Links de Escritorio */}
           <div className="hidden lg:flex items-center gap-6">
             <button
               className="relative cursor-pointer text-[11px] tracking-[0.35em] font-light text-neutral-300 hover:text-amber-400 transition-colors duration-300 group"
@@ -177,6 +211,11 @@ export function Navbar() {
               <span className="absolute -bottom-1 left-1/2 w-0 h-px bg-amber-500 transition-all duration-300 group-hover:w-full group-hover:left-0" />
             </button>
 
+            <CartButton
+              count={totalCartCount}
+              onClick={() => setIsCartOpen(true)}
+            />
+
             <button
               className="cursor-pointer px-4 py-1.5 border border-amber-500/40 text-amber-500 text-[10px] tracking-[0.25em] font-medium rounded-full hover:bg-amber-500 hover:text-black hover:border-amber-500 transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
               onClick={() => setIsModalOpen(true)}
@@ -185,7 +224,13 @@ export function Navbar() {
             </button>
           </div>
 
+          {/* Botones Móvil */}
           <div className="flex items-center gap-2 sm:hidden shrink-0">
+            <CartButton
+              count={totalCartCount}
+              onClick={() => setIsCartOpen(true)}
+            />
+
             <button
               className="text-neutral-300 hover:text-amber-400 text-sm p-2 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
               onClick={() => {
@@ -220,36 +265,23 @@ export function Navbar() {
           </div>
         </nav>
 
+        {/* Buscador Móvil desplegable */}
         {isMobileSearchOpen && (
           <div
             ref={searchBarRef}
             className="sm:hidden mt-2 h-11 flex items-center bg-neutral-950/95 backdrop-blur-xl border border-amber-500/40 rounded-full px-4 shadow-xl animate-in fade-in duration-300"
           >
-            <FaSearch className="text-amber-500 text-xs mr-3 shrink-0" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                if (e.target.value.trim()) setIsResultsOpen(true);
-              }}
-              onFocus={() => {
-                if (searchTerm.trim()) setIsResultsOpen(true);
-              }}
-              placeholder="Buscar perfume..."
-              className="w-full bg-transparent text-white text-xs placeholder-neutral-500 focus:outline-none h-full"
+            <SearchInput
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              setIsResultsOpen={setIsResultsOpen}
+              handleClear={handleClear}
               autoFocus
             />
-            <div className="w-6 flex items-center justify-center shrink-0">
-              {searchTerm && (
-                <button onClick={handleClear} className="text-neutral-400 p-1">
-                  <FaTimes className="text-xs" />
-                </button>
-              )}
-            </div>
           </div>
         )}
 
+        {/* Menú desplegable Móvil */}
         {isMobileMenuOpen && (
           <div className="lg:hidden mt-2 p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
             <button
@@ -276,32 +308,25 @@ export function Navbar() {
           </div>
         )}
 
-        {(loading ||
-          (isResultsOpen &&
-            searchTerm.trim() &&
-            (results.length > 0 || results.length === 0))) && (
+        {/* Panel de resultados de búsqueda */}
+        {(loading || (isResultsOpen && searchTerm.trim())) && (
           <div
             ref={resultsRef}
             className="absolute left-4 right-4 sm:left-6 sm:right-6 mt-2 bg-neutral-950/95 backdrop-blur-2xl border border-amber-500/40 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 transition-all duration-300"
           >
-            {loading && (
+            {loading ? (
               <div className="text-center text-neutral-400 text-xs tracking-widest py-4 uppercase">
                 Buscando fragancias...
               </div>
-            )}
-
-            {!loading && searchTerm.trim() && results.length === 0 && (
+            ) : results.length === 0 ? (
               <div className="text-center text-neutral-500 text-xs tracking-widest py-4 uppercase">
                 No se encontraron perfumes con "{searchTerm}"
               </div>
-            )}
-
-            {!loading && results.length > 0 && (
+            ) : (
               <div>
                 <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase mb-3 text-center sm:text-left">
                   Resultados encontrados ({results.length})
                 </p>
-
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
                   {results.map((perfume) => (
                     <div
@@ -320,11 +345,9 @@ export function Navbar() {
                           className="w-full h-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
                         />
                       </div>
-
                       <div className="bg-black/40 py-1 px-2 text-center text-neutral-500 text-[9px] tracking-wider uppercase border-t border-b border-white/5">
                         Imágen ilustrativa
                       </div>
-
                       <div className="p-3 text-center flex flex-col grow justify-between">
                         <div>
                           <p className="text-amber-500 text-[9px] tracking-[0.2em] uppercase mb-1 font-medium">
@@ -334,7 +357,6 @@ export function Navbar() {
                             {perfume.name}
                           </h3>
                         </div>
-
                         <div className="text-amber-500 font-bold text-xs tracking-wide">
                           $
                           {perfume.price
@@ -372,12 +394,79 @@ export function Navbar() {
         </div>
       </ContactPopup>
 
+      {/* Product Drawer con la prop onAddToCart conectada */}
       <ProductDrawer
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
         perfume={selectedPerfume}
+        onAddToCart={handleAddToCart}
+      />
+
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
       />
     </header>
+  );
+}
+
+// Subcomponente reutilizable para el Input de búsqueda
+function SearchInput({
+  searchTerm,
+  setSearchTerm,
+  setIsResultsOpen,
+  handleClear,
+  autoFocus = false,
+}) {
+  return (
+    <>
+      <FaSearch className="text-amber-500 text-xs ml-1 mr-2 shrink-0" />
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          if (e.target.value.trim()) setIsResultsOpen(true);
+        }}
+        onFocus={() => {
+          if (searchTerm.trim()) setIsResultsOpen(true);
+        }}
+        placeholder="Buscar perfume..."
+        className="w-full bg-transparent text-white text-xs placeholder-neutral-500 focus:outline-none tracking-wide h-full"
+        autoFocus={autoFocus}
+      />
+      <div className="w-6 flex items-center justify-center shrink-0">
+        {searchTerm && (
+          <button
+            onClick={handleClear}
+            className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+          >
+            <FaTimes className="text-[10px]" />
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+// Subcomponente reutilizable para el botón del Carrito
+function CartButton({ count, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative text-neutral-300 hover:text-amber-400 p-2 transition-colors cursor-pointer"
+      aria-label="Abrir carrito"
+    >
+      <FaShoppingCart size={18} />
+      {count > 0 && (
+        <span className="absolute -top-1 -right-1 bg-amber-500 text-black font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow">
+          {count}
+        </span>
+      )}
+    </button>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { ProductDrawer } from "../../components/ProductDrawer";
+import { WhatsAppButton } from "../../components/WhatsAppButton";
 
 export default function CataloguePage() {
   const [perfumes, setPerfumes] = useState([]);
@@ -32,6 +33,7 @@ export default function CataloguePage() {
 
   return (
     <section id="catalogue" className="bg-black py-22 px-4 sm:px-10 pt-32">
+      <WhatsAppButton />
       <div className="max-w-7xl mx-auto">
         {loading ? (
           <div className="text-white text-center py-20 tracking-widest opacity-50 text-sm">
