@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { ProductDrawer } from "../../components/ProductDrawer";
 import { WhatsAppButton } from "../../components/WhatsAppButton";
+import { useCart } from "../../context/CartContext";
 
 export default function CataloguePage() {
   const [perfumes, setPerfumes] = useState([]);
@@ -11,6 +12,8 @@ export default function CataloguePage() {
   const [marcaFiltro, setMarcaFiltro] = useState("");
   const [generoFiltro, setGeneroFiltro] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("");
+
+  const { addToCart } = useCart();
 
   useEffect(() => {
     async function fetchPerfumes() {
@@ -194,6 +197,7 @@ export default function CataloguePage() {
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
         perfume={selectedPerfume}
+        onAddToCart={addToCart}
       />
     </section>
   );

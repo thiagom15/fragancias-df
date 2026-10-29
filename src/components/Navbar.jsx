@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import DFLogoNav from "../assets/DFLogoNav.avif";
 import ContactPopup from "./ContactPopup";
 import { ProductDrawer } from "./ProductDrawer";
-import { CartDrawer } from "./CartDrawer";
+import { useCart } from "../context/CartContext";
 import { supabase } from "../supabaseClient";
 import {
   FaInstagram,
@@ -18,10 +18,19 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const {
+    cartItems,
+    totalCount,
+    isCartOpen,
+    setIsCartOpen,
+    addToCart,
+    updateQuantity,
+    removeItem,
+  } = useCart();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
@@ -29,31 +38,9 @@ export function Navbar() {
   const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [selectedPerfume, setSelectedPerfume] = useState(null);
 
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const savedCart = localStorage.getItem("df_cart");
-      return savedCart ? JSON.parse(savedCart) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("df_cart", JSON.stringify(cartItems));
-    } catch (error) {
-      console.error("Error guardando carrito:", error);
-    }
-  }, [cartItems]);
-
   const navContainerRef = useRef(null);
   const searchBarRef = useRef(null);
   const resultsRef = useRef(null);
-
-  const totalCartCount = cartItems.reduce(
-    (acc, item) => acc + item.quantity,
-    0,
-  );
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -68,34 +55,6 @@ export function Navbar() {
     setSearchTerm("");
     setResults([]);
     setIsResultsOpen(false);
-  };
-
-  const handleAddToCart = (perfume) => {
-    setCartItems((prev) => {
-      const exists = prev.find((item) => item.id === perfume.id);
-      if (exists) {
-        return prev.map((item) =>
-          item.id === perfume.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-      }
-      return [...prev, { ...perfume, quantity: 1 }];
-    });
-    setIsCartOpen(true);
-  };
-
-  const handleUpdateQuantity = (id, newQuantity) => {
-    if (newQuantity <= 0) return handleRemoveItem(id);
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item,
-      ),
-    );
-  };
-
-  const handleRemoveItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   useEffect(() => {
@@ -204,7 +163,7 @@ export function Navbar() {
             </button>
 
             <CartButton
-              count={totalCartCount}
+              count={totalCount}
               onClick={() => setIsCartOpen(true)}
             />
 
@@ -218,7 +177,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-2 sm:hidden shrink-0">
             <CartButton
-              count={totalCartCount}
+              count={totalCount}
               onClick={() => setIsCartOpen(true)}
             />
 
@@ -386,15 +345,7 @@ export function Navbar() {
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
         perfume={selectedPerfume}
-        onAddToCart={handleAddToCart}
-      />
-
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
+        onAddToCart={addToCart}
       />
     </header>
   );

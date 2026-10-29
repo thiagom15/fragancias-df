@@ -2,7 +2,7 @@ import { Navbar, Footer } from "./components";
 import { Route, Routes } from "react-router-dom";
 import HomePage from "./pages/home/HomePage";
 import CataloguePage from "./pages/catalogue/CataloguePage";
-import CartDrawer from "./components/CartDrawer";
+import { CartDrawer } from "./components/CartDrawer";
 import { CartProvider, useCart } from "./context/CartContext";
 
 function MainLayout() {
@@ -11,7 +11,7 @@ function MainLayout() {
 
   return (
     <div className="bg-black text-white font-sans min-h-screen flex flex-col justify-between">
-      <Navbar onOpenCart={() => setIsCartOpen(true)} cartItems={cartItems} />
+      <Navbar />
 
       <main className="grow">
         <Routes>

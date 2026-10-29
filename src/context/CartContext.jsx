@@ -37,6 +37,10 @@ export function CartProvider({ children }) {
     setIsCartOpen(true);
   };
 
+  const removeItem = (id) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity <= 0) return removeItem(id);
     setCartItems((prev) =>
@@ -46,19 +50,21 @@ export function CartProvider({ children }) {
     );
   };
 
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  const clearCart = () => setCartItems([]);
+
+  const totalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <CartContext.Provider
       value={{
         cartItems,
+        totalCount,
         isCartOpen,
         setIsCartOpen,
         addToCart,
         updateQuantity,
         removeItem,
+        clearCart,
       }}
     >
       {children}
