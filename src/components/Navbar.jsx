@@ -18,20 +18,17 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Estados de modales y drawers
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Estados del buscador
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [selectedPerfume, setSelectedPerfume] = useState(null);
 
-  // Estado del Carrito con LocalStorage
   const [cartItems, setCartItems] = useState(() => {
     try {
       const savedCart = localStorage.getItem("df_cart");
@@ -73,7 +70,6 @@ export function Navbar() {
     setIsResultsOpen(false);
   };
 
-  // Funciones del Carrito
   const handleAddToCart = (perfume) => {
     setCartItems((prev) => {
       const exists = prev.find((item) => item.id === perfume.id);
@@ -102,7 +98,6 @@ export function Navbar() {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Clic fuera del buscador / menú
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -129,7 +124,6 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Búsqueda en Supabase
   useEffect(() => {
     if (!searchTerm.trim()) {
       setResults([]);
@@ -183,7 +177,6 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Buscador Escritorio */}
           <div className="hidden sm:flex h-10 w-72 md:w-96 mx-2 items-center bg-neutral-900 border border-white/10 rounded-full px-3 focus-within:border-amber-500/60 transition-colors shrink-0">
             <SearchInput
               searchTerm={searchTerm}
@@ -193,7 +186,6 @@ export function Navbar() {
             />
           </div>
 
-          {/* Links de Escritorio */}
           <div className="hidden lg:flex items-center gap-6">
             <button
               className="relative cursor-pointer text-[11px] tracking-[0.35em] font-light text-neutral-300 hover:text-amber-400 transition-colors duration-300 group"
@@ -224,7 +216,6 @@ export function Navbar() {
             </button>
           </div>
 
-          {/* Botones Móvil */}
           <div className="flex items-center gap-2 sm:hidden shrink-0">
             <CartButton
               count={totalCartCount}
@@ -265,7 +256,6 @@ export function Navbar() {
           </div>
         </nav>
 
-        {/* Buscador Móvil desplegable */}
         {isMobileSearchOpen && (
           <div
             ref={searchBarRef}
@@ -281,7 +271,6 @@ export function Navbar() {
           </div>
         )}
 
-        {/* Menú desplegable Móvil */}
         {isMobileMenuOpen && (
           <div className="lg:hidden mt-2 p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
             <button
@@ -308,7 +297,6 @@ export function Navbar() {
           </div>
         )}
 
-        {/* Panel de resultados de búsqueda */}
         {(loading || (isResultsOpen && searchTerm.trim())) && (
           <div
             ref={resultsRef}
@@ -394,7 +382,6 @@ export function Navbar() {
         </div>
       </ContactPopup>
 
-      {/* Product Drawer con la prop onAddToCart conectada */}
       <ProductDrawer
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
@@ -413,7 +400,6 @@ export function Navbar() {
   );
 }
 
-// Subcomponente reutilizable para el Input de búsqueda
 function SearchInput({
   searchTerm,
   setSearchTerm,
@@ -452,7 +438,6 @@ function SearchInput({
   );
 }
 
-// Subcomponente reutilizable para el botón del Carrito
 function CartButton({ count, onClick }) {
   return (
     <button

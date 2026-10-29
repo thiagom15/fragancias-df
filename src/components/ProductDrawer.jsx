@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { FaShoppingCart } from "react-icons/fa";
-import { useCart } from "../context/CartContext"; // <--- Importas el hook global
+import { useCart } from "../context/CartContext";
 
 export function ProductDrawer({ isOpen, onClose, perfume }) {
-  const { addToCart } = useCart(); // <--- Obtenemos la función global
+  const { addToCart } = useCart();
 
   useEffect(() => {
     if (isOpen) {
@@ -28,7 +28,7 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
   };
 
   const handleAddAndClose = () => {
-    addToCart(perfume); // <--- Añade al carrito y abre el drawer automáticamente
+    addToCart(perfume);
     onClose();
   };
 

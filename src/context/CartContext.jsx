@@ -34,7 +34,7 @@ export function CartProvider({ children }) {
       }
       return [...prev, { ...perfume, quantity: 1 }];
     });
-    setIsCartOpen(true); // Abre el carrito automáticamente
+    setIsCartOpen(true);
   };
 
   const updateQuantity = (id, newQuantity) => {
