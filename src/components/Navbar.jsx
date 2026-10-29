@@ -56,11 +56,13 @@ export function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event) {
+      if (selectedPerfume) return;
       if (
         event.target.closest('[role="dialog"]') ||
         event.target.closest(".fixed.inset-0")
-      )
+      ) {
         return;
+      }
 
       const isOutsideNav =
         navContainerRef.current &&
@@ -78,7 +80,37 @@ export function Navbar() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [selectedPerfume]);
+
+  useEffect(() => {
+    if (!isMobileSearchOpen) return;
+
+    function handleScrollOutside(event) {
+      if (window.innerWidth >= 640) return;
+
+      if (selectedPerfume) return;
+
+      const isInsideSearch =
+        searchBarRef.current && searchBarRef.current.contains(event.target);
+      const isInsideResults =
+        resultsRef.current && resultsRef.current.contains(event.target);
+
+      if (isInsideSearch || isInsideResults) return;
+
+      setIsMobileSearchOpen(false);
+      setIsResultsOpen(false);
+    }
+
+    window.addEventListener("wheel", handleScrollOutside, { passive: true });
+    window.addEventListener("touchmove", handleScrollOutside, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener("wheel", handleScrollOutside);
+      window.removeEventListener("touchmove", handleScrollOutside);
+    };
+  }, [isMobileSearchOpen, selectedPerfume]);
 
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -111,13 +143,28 @@ export function Navbar() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  const isDesktop =
+    typeof window !== "undefined" ? window.innerWidth >= 640 : false;
+
   return (
     <header className="fixed top-0 left-0 w-full z-50 flex flex-col items-center">
       <div
-        className="w-full px-4 sm:px-6 mt-3 max-w-6xl relative"
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 sm:hidden ${
+          isMobileSearchOpen
+            ? "opacity-100 visible"
+            : "opacity-0 invisible pointer-events-none"
+        }`}
+        onClick={() => {
+          setIsMobileSearchOpen(false);
+          setIsResultsOpen(false);
+        }}
+      />
+
+      <div
+        className="w-full px-4 sm:px-6 mt-3 max-w-6xl relative z-50"
         ref={navContainerRef}
       >
-        <nav className="relative flex justify-between items-center gap-4 px-6 py-2.5 w-full bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300">
+        <nav className="relative flex justify-between items-center gap-4 px-6 py-2.5 w-full bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 z-50">
           <Link
             to="/"
             className="flex items-center gap-2 shrink-0"
@@ -181,8 +228,13 @@ export function Navbar() {
             <button
               className="text-neutral-300 hover:text-amber-400 p-2 rounded-full hover:bg-white/5 transition-colors cursor-pointer flex items-center justify-center"
               onClick={() => {
-                setIsMobileSearchOpen(!isMobileSearchOpen);
+                const nextState = !isMobileSearchOpen;
+                setIsMobileSearchOpen(nextState);
                 setIsMobileMenuOpen(false);
+
+                if (nextState && searchTerm.trim()) {
+                  setIsResultsOpen(true);
+                }
               }}
               aria-label={
                 isMobileSearchOpen ? "Cerrar buscador" : "Abrir buscador"
@@ -202,6 +254,7 @@ export function Navbar() {
               onClick={() => {
                 setIsMobileMenuOpen(!isMobileMenuOpen);
                 setIsMobileSearchOpen(false);
+                setIsResultsOpen(false);
               }}
               aria-label={isMobileMenuOpen ? "Cerrar Menú" : "Abrir Menú"}
             >
@@ -216,117 +269,120 @@ export function Navbar() {
           </div>
         </nav>
 
-        <div
-          className={`sm:hidden absolute w-full left-0 px-4 transition-all duration-300 origin-top ${
-            isMobileSearchOpen
-              ? "opacity-100 scale-y-100 translate-y-2 pointer-events-auto"
-              : "opacity-0 scale-y-0 -translate-y-2 pointer-events-none"
-          }`}
-        >
+        <div className="absolute w-full left-0 px-4 sm:px-0 top-full mt-2 flex flex-col gap-2 z-50">
           <div
-            ref={searchBarRef}
-            className="h-11 flex items-center bg-neutral-950/95 backdrop-blur-xl border border-amber-500/40 rounded-full px-4 shadow-xl"
+            className={`sm:hidden transition-all duration-300 origin-top ${
+              isMobileSearchOpen
+                ? "opacity-100 scale-y-100 h-11"
+                : "opacity-0 scale-y-0 h-0 overflow-hidden pointer-events-none"
+            }`}
           >
-            <SearchInput
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              setIsResultsOpen={setIsResultsOpen}
-              handleClear={handleClear}
-              autoFocus={isMobileSearchOpen}
-            />
-          </div>
-        </div>
-
-        {isMobileMenuOpen && (
-          <div className="lg:hidden absolute w-full left-0 px-4 translate-y-15 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
-              <button
-                className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
-                onClick={() => handleNavigate("/")}
-              >
-                Inicio
-              </button>
-              <button
-                className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
-                onClick={() => handleNavigate("/catalogue")}
-              >
-                Catálogo
-              </button>
-              <button
-                className="w-full py-2.5 border border-amber-500/50 text-amber-500 text-[11px] tracking-[0.25em] font-medium rounded-full bg-amber-500/10 hover:bg-amber-500 hover:text-black transition-all"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsModalOpen(true);
-                }}
-              >
-                CONTACTO
-              </button>
+            <div
+              ref={searchBarRef}
+              className="w-full h-full flex items-center bg-neutral-950/95 backdrop-blur-xl border border-amber-500/40 rounded-full px-4 shadow-xl"
+            >
+              <SearchInput
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                setIsResultsOpen={setIsResultsOpen}
+                handleClear={handleClear}
+                autoFocus={isMobileSearchOpen}
+              />
             </div>
           </div>
-        )}
 
-        {(loading || (isResultsOpen && searchTerm.trim())) && (
-          <div
-            ref={resultsRef}
-            className="absolute left-4 right-4 sm:left-6 sm:right-6 mt-2 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 transition-all duration-300"
-          >
-            {loading ? (
-              <div className="text-center text-neutral-400 text-xs tracking-widest py-4 uppercase">
-                Buscando fragancias...
+          {isMobileMenuOpen && (
+            <div className="lg:hidden w-full animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
+                <button
+                  className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
+                  onClick={() => handleNavigate("/")}
+                >
+                  Inicio
+                </button>
+                <button
+                  className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
+                  onClick={() => handleNavigate("/catalogue")}
+                >
+                  Catálogo
+                </button>
+                <button
+                  className="w-full py-2.5 border border-amber-500/50 text-amber-500 text-[11px] tracking-[0.25em] font-medium rounded-full bg-amber-500/10 hover:bg-amber-500 hover:text-black transition-all"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  CONTACTO
+                </button>
               </div>
-            ) : results.length === 0 ? (
-              <div className="text-center text-neutral-500 text-xs tracking-widest py-4 uppercase">
-                No se encontraron perfumes con "{searchTerm}"
-              </div>
-            ) : (
-              <div>
-                <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase mb-3 text-center sm:text-left">
-                  Resultados encontrados ({results.length})
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto overscroll-contain p-1">
-                  {results.map((perfume) => (
-                    <div
-                      key={perfume.id}
-                      onClick={() => {
-                        setSelectedPerfume(perfume);
-                        setIsResultsOpen(false);
-                        setIsMobileSearchOpen(false);
-                      }}
-                      className="group cursor-pointer flex flex-col justify-between relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50 hover:bg-neutral-900/80"
-                    >
-                      <div className="relative aspect-3/4 flex items-center justify-center overflow-hidden bg-neutral-900">
-                        <img
-                          src={perfume.image_url}
-                          alt={perfume.name}
-                          className="w-full scale-150 h-full object-contain p-3 transition-transform duration-700 group-hover:scale-145"
-                        />
-                      </div>
-                      <div className="bg-black/40 py-1 px-2 text-center text-neutral-500 text-[9px] tracking-wider uppercase border-t border-b border-white/5">
-                        Imágen ilustrativa
-                      </div>
-                      <div className="p-3 text-center flex flex-col grow justify-between">
-                        <div>
-                          <p className="text-amber-500 text-[9px] tracking-[0.2em] uppercase mb-1 font-medium">
-                            {perfume.brand}
-                          </p>
-                          <h3 className="text-white text-xs font-serif mb-1 tracking-wide line-clamp-1 transition-colors">
-                            {perfume.name}
-                          </h3>
-                        </div>
-                        <div className="text-amber-500 font-bold text-xs tracking-wide">
-                          $
-                          {perfume.price
-                            ? Number(perfume.price).toLocaleString("es-AR")
-                            : "18.000"}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            </div>
+          )}
+
+          {(loading ||
+            (isResultsOpen &&
+              searchTerm.trim() &&
+              (isDesktop || isMobileSearchOpen))) && (
+            <div
+              ref={resultsRef}
+              className="w-full bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-40 transition-all duration-300"
+            >
+              {loading ? (
+                <div className="text-center text-neutral-400 text-xs tracking-widest py-4 uppercase">
+                  Buscando fragancias...
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              ) : results.length === 0 ? (
+                <div className="text-center text-neutral-500 text-xs tracking-widest py-4 uppercase">
+                  No se encontraron perfumes con "{searchTerm}"
+                </div>
+              ) : (
+                <div>
+                  <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase mb-3 text-center sm:text-left">
+                    Resultados encontrados ({results.length})
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto overscroll-contain p-1">
+                    {results.map((perfume) => (
+                      <div
+                        key={perfume.id}
+                        onClick={() => {
+                          setSelectedPerfume(perfume);
+                        }}
+                        className="group cursor-pointer flex flex-col justify-between relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50 hover:bg-neutral-900/80"
+                      >
+                        <div className="relative aspect-3/4 flex items-center justify-center overflow-hidden bg-neutral-900">
+                          <img
+                            src={perfume.image_url}
+                            alt={perfume.name}
+                            className="w-full scale-150 h-full object-contain p-3 transition-transform duration-700 group-hover:scale-145"
+                          />
+                        </div>
+                        <div className="bg-black/40 py-1 px-2 text-center text-neutral-500 text-[9px] tracking-wider uppercase border-t border-b border-white/5">
+                          Imágen ilustrativa
+                        </div>
+                        <div className="p-3 text-center flex flex-col grow justify-between">
+                          <div>
+                            <p className="text-amber-500 text-[9px] tracking-[0.2em] uppercase mb-1 font-medium">
+                              {perfume.brand}
+                            </p>
+                            <h3 className="text-white text-xs font-serif mb-1 tracking-wide line-clamp-1 transition-colors">
+                              {perfume.name}
+                            </h3>
+                          </div>
+                          <div className="text-amber-500 font-bold text-xs tracking-wide">
+                            $
+                            {perfume.price
+                              ? Number(perfume.price).toLocaleString("es-AR")
+                              : "18.000"}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <ContactPopup

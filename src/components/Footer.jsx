@@ -1,11 +1,25 @@
-import { FaWhatsapp, FaInstagram } from "react-icons/fa";
+import { useState } from "react";
+import { FaWhatsapp, FaInstagram, FaSprayCan } from "react-icons/fa";
+import { MiniGame } from "./MiniGame";
 
 export function Footer() {
+  const [isGameOpen, setIsGameOpen] = useState(false);
+
   return (
     <footer
       id="footer"
-      className="bg-black text-neutral-400 px-6 sm:px-10 pb-10 pt-4"
+      className="bg-black text-neutral-400 px-6 sm:px-10 pb-10 pt-4 relative overflow-hidden"
     >
+      <button
+        onClick={() => setIsGameOpen(true)}
+        className="absolute bottom-0 left-0 z-90 w-4 h-4 flex items-center justify-center text-amber-500/30 hover:text-amber-500 transition-all duration-300 hover:scale-125 cursor-pointer"
+        aria-label="Abrir juego secreto"
+      >
+        <span className="pointer-events-none">
+          <FaSprayCan size={12} />
+        </span>
+      </button>
+
       <div className="max-w-5xl mx-auto">
         <hr className="h-px border-0 bg-linear-to-r from-transparent via-neutral-700 to-transparent mb-8" />
 
@@ -41,6 +55,8 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      <MiniGame isOpen={isGameOpen} onClose={() => setIsGameOpen(false)} />
     </footer>
   );
 }

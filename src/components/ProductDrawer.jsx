@@ -19,7 +19,7 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
 
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isSnappingClose, setIsSnappingClose] = useState(false); // 👈 NUEVO ESTADO
+  const [isSnappingClose, setIsSnappingClose] = useState(false);
 
   useEffect(() => {
     if (isOpen) {

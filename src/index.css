@@ -8,3 +8,12 @@
 .animate-halo {
   animation: spin-slow 3s linear infinite;
 }
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}

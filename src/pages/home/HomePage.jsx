@@ -42,7 +42,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="bg-black w-full overflow-x-hidden">
+    <div className="bg-black w-full overflow-x-hidden relative">
       <section className="relative h-screen w-full flex items-center px-6 sm:px-10 lg:px-20 overflow-hidden">
         <WhatsAppButton />
 
