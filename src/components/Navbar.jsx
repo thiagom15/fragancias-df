@@ -54,6 +54,31 @@ export function Navbar() {
     setIsResultsOpen(false);
   };
 
+  const isAnythingOpen =
+    isMobileSearchOpen || isMobileMenuOpen || isResultsOpen || isModalOpen;
+
+  useEffect(() => {
+    if (isAnythingOpen) {
+      window.history.pushState({ navbarOpen: true }, "");
+
+      const handlePopState = () => {
+        setIsMobileMenuOpen(false);
+        setIsMobileSearchOpen(false);
+        setIsResultsOpen(false);
+        setIsModalOpen(false);
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        if (window.history.state?.navbarOpen) {
+          window.history.back();
+        }
+      };
+    }
+  }, [isAnythingOpen]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (selectedPerfume) return;
@@ -87,7 +112,6 @@ export function Navbar() {
 
     function handleScrollOutside(event) {
       if (window.innerWidth >= 640) return;
-
       if (selectedPerfume) return;
 
       const isInsideSearch =

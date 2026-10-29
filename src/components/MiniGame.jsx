@@ -21,12 +21,30 @@ export function MiniGame({ isOpen, onClose }) {
   }, [isPlaying, timeLeft]);
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "unset";
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      window.history.pushState({ gameOpen: true }, "");
+
+      const handlePopState = () => {
+        onClose();
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        document.body.style.overflow = "unset";
+        window.removeEventListener("popstate", handlePopState);
+        if (window.history.state?.gameOpen) {
+          window.history.back();
+        }
+      };
+    } else {
+      document.body.style.overflow = "unset";
+    }
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   const movePerfume = () => {
     if (!isPlaying) return;

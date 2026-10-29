@@ -40,6 +40,25 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ productOpen: true }, "");
+
+      const handlePopState = () => {
+        onClose();
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        if (window.history.state?.productOpen) {
+          window.history.back();
+        }
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!perfume) return null;
 
   const handleWhatsApp = () => {

@@ -46,6 +46,25 @@ export function CartDrawer({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ cartOpen: true }, "");
+
+      const handlePopState = () => {
+        onClose();
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        if (window.history.state?.cartOpen) {
+          window.history.back();
+        }
+      };
+    }
+  }, [isOpen, onClose]);
+
   const handleCheckoutWhatsApp = () => {
     if (cartItems.length === 0) return;
     let message =
