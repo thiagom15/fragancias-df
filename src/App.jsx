@@ -6,8 +6,15 @@ import { CartDrawer } from "./components/CartDrawer";
 import { CartProvider, useCart } from "./context/CartContext";
 
 function MainLayout() {
-  const { cartItems, isCartOpen, setIsCartOpen, updateQuantity, removeItem } =
-    useCart();
+  const {
+    cartItems,
+    isCartOpen,
+    setIsCartOpen,
+    updateQuantity,
+    removeItem,
+    totalCount,
+    totalPrice,
+  } = useCart();
 
   return (
     <div className="bg-black text-white font-sans min-h-screen flex flex-col justify-between">
@@ -26,6 +33,8 @@ function MainLayout() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
+        totalCount={totalCount}
+        totalPrice={totalPrice}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeItem}
       />

@@ -1,20 +1,43 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { FaShoppingCart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 
+const DRAG_CLOSE_THRESHOLD = 80;
+const DRAG_VELOCITY_THRESHOLD = 0.5;
+
 export function ProductDrawer({ isOpen, onClose, perfume }) {
   const { addToCart } = useCart();
+
+  const dragState = useRef({
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    lockedAxis: null,
+  });
+
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isSnappingClose, setIsSnappingClose] = useState(false); // 👈 NUEVO ESTADO
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
+      setIsSnappingClose(false);
     }
     return () => {
       document.body.style.overflow = "unset";
     };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setDragX(0);
+      setIsDragging(false);
+    }
   }, [isOpen]);
 
   if (!perfume) return null;
@@ -32,18 +55,89 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
     onClose();
   };
 
+  const onTouchStart = (e) => {
+    if (e.target.closest("button")) return;
+    const t = e.touches[0];
+    dragState.current = {
+      dragging: true,
+      startX: t.clientX,
+      startY: t.clientY,
+      startTime: Date.now(),
+      lockedAxis: null,
+    };
+    setIsDragging(true);
+  };
+
+  const onTouchMove = (e) => {
+    if (!dragState.current.dragging) return;
+    const t = e.touches[0];
+    const deltaX = t.clientX - dragState.current.startX;
+    const deltaY = t.clientY - dragState.current.startY;
+
+    if (!dragState.current.lockedAxis) {
+      if (Math.abs(deltaX) > Math.abs(deltaY))
+        dragState.current.lockedAxis = "x";
+      else if (Math.abs(deltaY) > 8) dragState.current.lockedAxis = "y";
+    }
+
+    if (dragState.current.lockedAxis !== "x") return;
+    setDragX(deltaX > 0 ? deltaX : 0);
+  };
+
+  const onTouchEnd = () => {
+    if (!dragState.current.dragging) return;
+    dragState.current.dragging = false;
+    setIsDragging(false);
+
+    const elapsed = Date.now() - dragState.current.startTime;
+    const velocity = dragX / Math.max(elapsed, 1);
+
+    if (dragX > DRAG_CLOSE_THRESHOLD || velocity > DRAG_VELOCITY_THRESHOLD) {
+      setIsSnappingClose(true);
+      setDragX(window.innerWidth);
+
+      setTimeout(() => {
+        onClose();
+        setIsSnappingClose(false);
+        setDragX(0);
+      }, 700);
+    } else {
+      setDragX(0);
+    }
+  };
+
+  const panelStyle = isDragging
+    ? { transform: `translateX(${dragX}px)`, transition: "none" }
+    : isSnappingClose
+      ? {
+          transform: `translateX(${dragX}px)`,
+          transition: "transform 700ms cubic-bezier(0.16, 1, 0.3, 1)",
+        }
+      : undefined;
+
+  const overlayStyle = isSnappingClose
+    ? { opacity: 0, transition: "opacity 700ms ease-in-out" }
+    : undefined;
+
   return (
     <>
       <div
+        style={overlayStyle}
         className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-all duration-700 ease-in-out ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          isOpen && !isSnappingClose
+            ? "opacity-100 visible"
+            : "opacity-0 invisible"
         }`}
         onClick={onClose}
       />
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-neutral-950 border-l border-white/10 z-50 shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={panelStyle}
+        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-neutral-950 border-l border-white/10 z-50 shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform will-change-transform ${
+          isOpen || isSnappingClose ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <button
@@ -57,7 +151,7 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
         </button>
 
         <div
-          className={`h-full overflow-y-auto px-6 py-12 sm:p-10 flex flex-col justify-between transition-opacity duration-1000 delay-300 ${isOpen ? "opacity-100" : "opacity-0"}`}
+          className={`h-full overflow-y-auto px-6 py-12 sm:p-10 flex flex-col justify-between transition-opacity duration-700 ${isOpen ? "opacity-100" : "opacity-0"}`}
         >
           <div>
             <div className="w-full aspect-square bg-white/5 rounded-sm overflow-hidden mb-6 sm:mb-10 flex items-center justify-center border border-white/5">

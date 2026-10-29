@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
 
 const CartContext = createContext();
 
@@ -6,7 +6,18 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
     try {
       const savedCart = localStorage.getItem("df_cart");
-      return savedCart ? JSON.parse(savedCart) : [];
+      if (!savedCart) return [];
+
+      const parsed = JSON.parse(savedCart);
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed
+        .filter((item) => item && item.id)
+        .map((item) => ({
+          ...item,
+          quantity: Math.max(1, Number(item.quantity) || 1),
+          price: Number(item.price) || 18000,
+        }));
     } catch {
       return [];
     }
@@ -52,13 +63,28 @@ export function CartProvider({ children }) {
 
   const clearCart = () => setCartItems([]);
 
-  const totalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCount = useMemo(
+    () =>
+      cartItems.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0),
+    [cartItems],
+  );
+
+  const totalPrice = useMemo(
+    () =>
+      cartItems.reduce(
+        (total, item) =>
+          total + (Number(item.price) || 18000) * (Number(item.quantity) || 0),
+        0,
+      ),
+    [cartItems],
+  );
 
   return (
     <CartContext.Provider
       value={{
         cartItems,
         totalCount,
+        totalPrice,
         isCartOpen,
         setIsCartOpen,
         addToCart,
