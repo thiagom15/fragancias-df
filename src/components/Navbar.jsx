@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import DFLogoNav from "../assets/DFLogoNav.avif";
 import ContactPopup from "./ContactPopup";
@@ -17,16 +17,7 @@ import {
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const {
-    cartItems,
-    totalCount,
-    isCartOpen,
-    setIsCartOpen,
-    addToCart,
-    updateQuantity,
-    removeItem,
-  } = useCart();
+  const { totalCount, setIsCartOpen, addToCart } = useCart();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -42,14 +33,20 @@ export function Navbar() {
   const searchBarRef = useRef(null);
   const resultsRef = useRef(null);
 
-  const handleNavigate = (path) => {
-    navigate(path);
-    setIsMobileMenuOpen(false);
-    setIsMobileSearchOpen(false);
-    setIsResultsOpen(false);
-    if (location.pathname !== path) handleClear();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const handleNavigate = useCallback(
+    (path) => {
+      navigate(path);
+      setIsMobileMenuOpen(false);
+      setIsMobileSearchOpen(false);
+      setIsResultsOpen(false);
+      if (location.pathname !== path) {
+        setSearchTerm("");
+        setResults([]);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [navigate, location.pathname],
+  );
 
   const handleClear = () => {
     setSearchTerm("");
@@ -182,84 +179,96 @@ export function Navbar() {
             />
 
             <button
-              className="text-neutral-300 hover:text-amber-400 text-sm p-2 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+              className="text-neutral-300 hover:text-amber-400 p-2 rounded-full hover:bg-white/5 transition-colors cursor-pointer flex items-center justify-center"
               onClick={() => {
-                const nextState = !isMobileSearchOpen;
-                setIsMobileSearchOpen(nextState);
-                if (nextState) {
-                  setIsMobileMenuOpen(false);
-                  if (searchTerm.trim()) setIsResultsOpen(true);
-                } else {
-                  setIsResultsOpen(false);
-                }
+                setIsMobileSearchOpen(!isMobileSearchOpen);
+                setIsMobileMenuOpen(false);
               }}
-              aria-label="Abrir buscador"
+              aria-label={
+                isMobileSearchOpen ? "Cerrar buscador" : "Abrir buscador"
+              }
             >
-              <FaSearch />
+              <div className="w-5 h-5 flex items-center justify-center">
+                {isMobileSearchOpen ? (
+                  <FaTimes className="text-[18px]" />
+                ) : (
+                  <FaSearch className="text-[14px]" />
+                )}
+              </div>
             </button>
 
             <button
-              className="text-neutral-300 hover:text-white text-lg p-1 cursor-pointer"
+              className="text-neutral-300 hover:text-white p-2 cursor-pointer flex items-center justify-center"
               onClick={() => {
-                const nextState = !isMobileMenuOpen;
-                setIsMobileMenuOpen(nextState);
-                if (nextState) {
-                  setIsMobileSearchOpen(false);
-                  setIsResultsOpen(false);
-                }
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+                setIsMobileSearchOpen(false);
               }}
-              aria-label="Abrir Menú"
+              aria-label={isMobileMenuOpen ? "Cerrar Menú" : "Abrir Menú"}
             >
-              {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+              <div className="w-5 h-5 flex items-center justify-center">
+                {isMobileMenuOpen ? (
+                  <FaTimes className="text-[18px]" />
+                ) : (
+                  <FaBars className="text-[18px]" />
+                )}
+              </div>
             </button>
           </div>
         </nav>
 
-        {isMobileSearchOpen && (
+        <div
+          className={`sm:hidden absolute w-full left-0 px-4 transition-all duration-300 origin-top ${
+            isMobileSearchOpen
+              ? "opacity-100 scale-y-100 translate-y-2 pointer-events-auto"
+              : "opacity-0 scale-y-0 -translate-y-2 pointer-events-none"
+          }`}
+        >
           <div
             ref={searchBarRef}
-            className="sm:hidden mt-2 h-11 flex items-center bg-neutral-950/95 backdrop-blur-xl border border-amber-500/40 rounded-full px-4 shadow-xl animate-in fade-in duration-300"
+            className="h-11 flex items-center bg-neutral-950/95 backdrop-blur-xl border border-amber-500/40 rounded-full px-4 shadow-xl"
           >
             <SearchInput
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               setIsResultsOpen={setIsResultsOpen}
               handleClear={handleClear}
-              autoFocus
+              autoFocus={isMobileSearchOpen}
             />
           </div>
-        )}
+        </div>
 
         {isMobileMenuOpen && (
-          <div className="lg:hidden mt-2 p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
-            <button
-              className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
-              onClick={() => handleNavigate("/")}
-            >
-              Inicio
-            </button>
-            <button
-              className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
-              onClick={() => handleNavigate("/catalogue")}
-            >
-              Catálogo
-            </button>
-            <button
-              className="w-full py-2.5 border border-amber-500/50 text-amber-500 text-[11px] tracking-[0.25em] font-medium rounded-full bg-amber-500/10 hover:bg-amber-500 hover:text-black transition-all"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                setIsModalOpen(true);
-              }}
-            >
-              CONTACTO
-            </button>
+          <div className="lg:hidden absolute w-full left-0 px-4 translate-y-15 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="p-6 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl flex flex-col items-center gap-5 text-center shadow-2xl">
+              <button
+                className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
+                onClick={() => handleNavigate("/")}
+              >
+                Inicio
+              </button>
+              <button
+                className="text-xs tracking-[0.3em] font-light text-neutral-200 hover:text-amber-500 uppercase py-1"
+                onClick={() => handleNavigate("/catalogue")}
+              >
+                Catálogo
+              </button>
+              <button
+                className="w-full py-2.5 border border-amber-500/50 text-amber-500 text-[11px] tracking-[0.25em] font-medium rounded-full bg-amber-500/10 hover:bg-amber-500 hover:text-black transition-all"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsModalOpen(true);
+                }}
+              >
+                CONTACTO
+              </button>
+            </div>
           </div>
         )}
 
         {(loading || (isResultsOpen && searchTerm.trim())) && (
           <div
             ref={resultsRef}
-            className="absolute left-4 right-4 sm:left-6 sm:right-6 mt-2 bg-neutral-950/95 backdrop-blur-2xl border border-amber-500/40 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 transition-all duration-300"
+            className="absolute left-4 right-4 sm:left-6 sm:right-6 mt-2 bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 transition-all duration-300"
           >
             {loading ? (
               <div className="text-center text-neutral-400 text-xs tracking-widest py-4 uppercase">
@@ -274,7 +283,7 @@ export function Navbar() {
                 <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase mb-3 text-center sm:text-left">
                   Resultados encontrados ({results.length})
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto overscroll-contain p-1">
                   {results.map((perfume) => (
                     <div
                       key={perfume.id}
@@ -289,7 +298,7 @@ export function Navbar() {
                         <img
                           src={perfume.image_url}
                           alt={perfume.name}
-                          className="w-full h-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
+                          className="w-full scale-150 h-full object-contain p-3 transition-transform duration-700 group-hover:scale-145"
                         />
                       </div>
                       <div className="bg-black/40 py-1 px-2 text-center text-neutral-500 text-[9px] tracking-wider uppercase border-t border-b border-white/5">
@@ -300,7 +309,7 @@ export function Navbar() {
                           <p className="text-amber-500 text-[9px] tracking-[0.2em] uppercase mb-1 font-medium">
                             {perfume.brand}
                           </p>
-                          <h3 className="text-white text-xs font-serif mb-1 tracking-wide line-clamp-1 group-hover:text-amber-400 transition-colors">
+                          <h3 className="text-white text-xs font-serif mb-1 tracking-wide line-clamp-1 transition-colors">
                             {perfume.name}
                           </h3>
                         </div>

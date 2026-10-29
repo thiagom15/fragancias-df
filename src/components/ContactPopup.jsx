@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { FaPhoneAlt, FaInstagram } from "react-icons/fa";
 
 export default function ContactPopup({ isOpen, onClose, title, children }) {
   useEffect(() => {
@@ -25,7 +26,31 @@ export default function ContactPopup({ isOpen, onClose, title, children }) {
               {title}
             </h2>
           )}
-          <div className="text-gray-300">{children}</div>
+          <div className="text-gray-300 space-y-4">
+            <a
+              href="https://wa.me/5492364674352"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 text-sm hover:text-amber-500 transition-colors group"
+            >
+              <span className="text-amber-500 group-hover:scale-110 transition-transform">
+                <FaPhoneAlt />
+              </span>
+              +54 9 2364 674352
+            </a>
+
+            <a
+              href="https://www.instagram.com/fraganciass_df"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 text-sm hover:text-amber-500 transition-colors group"
+            >
+              <span className="text-amber-500 group-hover:scale-110 transition-transform">
+                <FaInstagram />
+              </span>
+              @fraganciass_df
+            </a>
+          </div>
         </div>
 
         <button
