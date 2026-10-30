@@ -152,7 +152,7 @@ export function Navbar() {
         const { data, error } = await supabase
           .from("perfumes")
           .select("*")
-          .ilike("name", `%${searchTerm}%`)
+          .or(`name.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%`)
           .limit(8);
 
         if (error) throw error;
