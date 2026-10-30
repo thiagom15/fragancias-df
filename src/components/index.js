@@ -4,6 +4,3 @@ export * from "./FlechaSlideHome";
 export * from "./WhatsAppButton";
 export * from "./FeaturedPerfumes";
 export * from "./ContactPopup";
-export * from "./PerfumeCard";
-export * from "./CatalogueButton";
-export * from "./ProductDrawer"

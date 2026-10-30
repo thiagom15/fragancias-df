@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import DFLogoNav from "../assets/DFLogoNav.avif";
 import ContactPopup from "./ContactPopup";
 import { ProductDrawer } from "./ProductDrawer";
+import { SkeletonCard } from "./SkeletonCard";
 import { useCart } from "../context/CartContext";
 import { supabase } from "../supabaseClient";
 import {
@@ -58,6 +59,8 @@ export function Navbar() {
     isMobileSearchOpen || isMobileMenuOpen || isResultsOpen || isModalOpen;
 
   useEffect(() => {
+    if (selectedPerfume) return;
+
     if (isAnythingOpen) {
       window.history.pushState({ navbarOpen: true }, "");
 
@@ -77,11 +80,14 @@ export function Navbar() {
         }
       };
     }
-  }, [isAnythingOpen]);
+  }, [isAnythingOpen, selectedPerfume]);
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (selectedPerfume) return;
+
+      if (event.target.closest(".search-result-card")) return;
+
       if (
         event.target.closest('[role="dialog"]') ||
         event.target.closest(".fixed.inset-0")
@@ -352,8 +358,13 @@ export function Navbar() {
               className="w-full bg-neutral-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-40 transition-all duration-300"
             >
               {loading ? (
-                <div className="text-center text-neutral-400 text-xs tracking-widest py-4 uppercase">
-                  Buscando fragancias...
+                <div>
+                  <div className="h-3 w-32 bg-neutral-800/80 rounded-sm mb-4 animate-skeleton"></div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {[...Array(4)].map((_, i) => (
+                      <SkeletonCard key={i} />
+                    ))}
+                  </div>
                 </div>
               ) : results.length === 0 ? (
                 <div className="text-center text-neutral-500 text-xs tracking-widest py-4 uppercase">
@@ -368,10 +379,11 @@ export function Navbar() {
                     {results.map((perfume) => (
                       <div
                         key={perfume.id}
-                        onClick={() => {
+                        className="search-result-card group cursor-pointer flex flex-col justify-between relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50 hover:bg-neutral-900/80"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedPerfume(perfume);
                         }}
-                        className="group cursor-pointer flex flex-col justify-between relative overflow-hidden bg-neutral-900/50 border border-white/5 rounded-sm transition-all duration-500 hover:border-amber-500/50 hover:bg-neutral-900/80"
                       >
                         <div className="relative aspect-3/4 flex items-center justify-center overflow-hidden bg-neutral-900">
                           <img
@@ -413,27 +425,13 @@ export function Navbar() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Contacto"
-      >
-        <div className="space-y-3 p-2">
-          <p className="text-neutral-300 flex items-center gap-3 text-sm">
-            <span className="text-amber-500">
-              <FaPhoneAlt />
-            </span>{" "}
-            +54 2364674352
-          </p>
-          <p className="text-neutral-300 flex items-center gap-3 text-sm">
-            <span className="text-amber-500">
-              <FaInstagram />
-            </span>{" "}
-            @fraganciass_df
-          </p>
-        </div>
-      </ContactPopup>
+      />
 
       <ProductDrawer
         isOpen={!!selectedPerfume}
         onClose={() => setSelectedPerfume(null)}
         perfume={selectedPerfume}
+        origin="search"
         onAddToCart={addToCart}
       />
     </header>

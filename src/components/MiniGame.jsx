@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { IoClose } from "react-icons/io5";
 import { FaSprayCan } from "react-icons/fa";
 
@@ -21,30 +22,12 @@ export function MiniGame({ isOpen, onClose }) {
   }, [isPlaying, timeLeft]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      window.history.pushState({ gameOpen: true }, "");
-
-      const handlePopState = () => {
-        onClose();
-      };
-
-      window.addEventListener("popstate", handlePopState);
-
-      return () => {
-        document.body.style.overflow = "unset";
-        window.removeEventListener("popstate", handlePopState);
-        if (window.history.state?.gameOpen) {
-          window.history.back();
-        }
-      };
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   const movePerfume = () => {
     if (!isPlaying) return;
@@ -63,8 +46,8 @@ export function MiniGame({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+  return createPortal(
+    <div className="fixed inset-0 z-99999 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in duration-300">
       <div className="relative w-full max-w-md h-125 bg-neutral-950 border border-amber-500/30 rounded-2xl overflow-hidden flex flex-col shadow-[0_0_50px_rgba(245,158,11,0.15)]">
         <div className="flex justify-between items-center p-5 border-b border-white/10 z-10 bg-neutral-900/50">
           <h2 className="text-amber-500 font-serif italic text-xl tracking-wide">
@@ -95,9 +78,9 @@ export function MiniGame({ isOpen, onClose }) {
           {!isPlaying && timeLeft > 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/60 p-6 text-center">
               <p className="text-gray-300 mb-8 text-sm leading-relaxed">
-                Has encontrado el perfume oculto. <br />
+                Encontraste el perfume oculto <br />
                 <br />
-                Atrapa la fragancia la mayor cantidad de veces posible en 15
+                Atrapá la fragancia la mayor cantidad de veces posible en 15
                 segundos.
               </p>
               <button
@@ -137,6 +120,7 @@ export function MiniGame({ isOpen, onClose }) {
 
         <div className="h-1 w-full bg-linear-to-r from-transparent via-amber-500/50 to-transparent" />
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

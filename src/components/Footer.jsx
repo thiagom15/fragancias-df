@@ -8,11 +8,11 @@ export function Footer() {
   return (
     <footer
       id="footer"
-      className="bg-black text-neutral-400 px-6 sm:px-10 pb-10 pt-4 relative overflow-hidden"
+      className="bg-black text-neutral-400 px-6 sm:px-10 pb-10 pt-4 relative overflow-hidden z-10"
     >
       <button
         onClick={() => setIsGameOpen(true)}
-        className="absolute bottom-0 left-0 z-90 w-4 h-4 flex items-center justify-center text-amber-500/30 hover:text-amber-500 transition-all duration-300 hover:scale-125 cursor-pointer"
+        className="absolute bottom-0 left-0 z-10 w-4 h-4 flex items-center justify-center text-amber-500/30 hover:text-amber-500 transition-all duration-300 hover:scale-125 cursor-pointer"
         aria-label="Abrir juego secreto"
       >
         <span className="pointer-events-none">

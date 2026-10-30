@@ -6,7 +6,12 @@ import { useCart } from "../context/CartContext";
 const DRAG_CLOSE_THRESHOLD = 80;
 const DRAG_VELOCITY_THRESHOLD = 0.5;
 
-export function ProductDrawer({ isOpen, onClose, perfume }) {
+export function ProductDrawer({
+  isOpen,
+  onClose,
+  perfume,
+  origin = "catalogue",
+}) {
   const { addToCart } = useCart();
 
   const dragState = useRef({
@@ -41,7 +46,7 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && origin !== "search") {
       window.history.pushState({ productOpen: true }, "");
 
       const handlePopState = () => {
@@ -52,12 +57,9 @@ export function ProductDrawer({ isOpen, onClose, perfume }) {
 
       return () => {
         window.removeEventListener("popstate", handlePopState);
-        if (window.history.state?.productOpen) {
-          window.history.back();
-        }
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, origin, onClose]);
 
   if (!perfume) return null;
 

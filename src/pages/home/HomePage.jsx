@@ -6,6 +6,8 @@ import { WhatsAppButton } from "../../components/WhatsAppButton";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { FeaturedSection } from "../../components/FeaturedPerfumes";
+import { ScrollToTop } from "../../components/ScrollToTopButton";
+import { InstagramFeed } from "../../components/InstagramFeed";
 
 export default function HomePage() {
   const [init, setInit] = useState(false);
@@ -86,6 +88,10 @@ export default function HomePage() {
       </section>
 
       <FeaturedSection />
+
+      <InstagramFeed />
+
+      <ScrollToTop />
     </div>
   );
 }

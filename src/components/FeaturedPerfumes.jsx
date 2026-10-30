@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { ProductDrawer } from "./ProductDrawer";
+import { SkeletonCard } from "./SkeletonCard";
 
 export function FeaturedSection() {
   const [perfumes, setPerfumes] = useState([]);
@@ -73,8 +74,10 @@ export function FeaturedSection() {
         </h2>
 
         {loading ? (
-          <div className="text-white text-center py-20 tracking-widest opacity-50 text-sm">
-            CARGANDO COLECCIÓN...
+          <div className="relative w-full flex items-center justify-center h-112.5">
+            <div className="w-60 sm:w-70">
+              <SkeletonCard />
+            </div>
           </div>
         ) : (
           <div className="relative group">
