@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaWhatsapp, FaInstagram, FaSprayCan } from "react-icons/fa";
-import { MiniGame } from "./MiniGame";
+import { MiniGameModal } from "./MiniGameModal";
 
 export function Footer() {
   const [isGameOpen, setIsGameOpen] = useState(false);
@@ -56,7 +56,7 @@ export function Footer() {
         </div>
       </div>
 
-      <MiniGame isOpen={isGameOpen} onClose={() => setIsGameOpen(false)} />
+      <MiniGameModal isOpen={isGameOpen} onClose={() => setIsGameOpen(false)} />
     </footer>
   );
 }

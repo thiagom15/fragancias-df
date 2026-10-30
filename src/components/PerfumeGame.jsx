@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { IoClose } from "react-icons/io5";
 import { FaSprayCan } from "react-icons/fa";
 
-export function MiniGame({ isOpen, onClose }) {
+export function PerfumeGame({ isOpen, onClose, onNextGame }) {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(15);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -53,12 +53,35 @@ export function MiniGame({ isOpen, onClose }) {
           <h2 className="text-amber-500 font-serif italic text-xl tracking-wide">
             Fragancia Secreta
           </h2>
-          <button
-            onClick={onClose}
-            className="text-white/40 hover:text-amber-500 transition-colors cursor-pointer"
-          >
-            <IoClose size={26} />
-          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onNextGame}
+              className="text-white/40 hover:text-amber-500 transition-colors cursor-pointer"
+              title="Cambiar juego"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                className="w-5 h-5"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="text-white/40 hover:text-amber-500 transition-colors cursor-pointer"
+            >
+              <IoClose size={26} />
+            </button>
+          </div>
         </div>
 
         <div className="flex justify-between p-5 text-white font-mono text-sm tracking-widest z-10 absolute top-16 w-full pointer-events-none">
