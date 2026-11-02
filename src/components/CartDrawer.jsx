@@ -196,54 +196,63 @@ export function CartDrawer({
             cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-4 bg-neutral-900/50 border border-white/5 rounded-sm p-3 relative group"
+                className="flex flex-col gap-3 bg-neutral-900/60 border border-white/5 rounded-lg p-4 relative"
               >
-                <div className="w-16 h-16 bg-neutral-900 rounded-sm overflow-hidden shrink-0 flex items-center justify-center border border-white/5">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-contain p-1"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-amber-500 text-[9px] tracking-[0.2em] uppercase truncate">
-                    {item.brand}
-                  </p>
-                  <h3 className="text-white text-xs font-serif truncate tracking-wide mb-1">
-                    {item.name}
-                  </h3>
-                  <div className="text-amber-400 font-bold text-xs">
-                    $
-                    {((item.price || 18000) * item.quantity).toLocaleString(
-                      "es-AR",
-                    )}
+                <div className="flex items-start gap-4">
+                  <div className="w-20 h-20 bg-neutral-950 rounded-md overflow-hidden shrink-0 flex items-center justify-center border border-white/5">
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      className="w-full h-full object-contain p-2"
+                    />
                   </div>
-                </div>
-                <div className="flex flex-col items-end justify-between h-full gap-2">
+
+                  <div className="flex-1 min-w-0 pt-1">
+                    <p className="text-amber-500 text-[10px] tracking-[0.2em] uppercase truncate font-medium mb-1">
+                      {item.brand}
+                    </p>
+                    <h3 className="text-white text-sm font-serif truncate tracking-wide mb-2">
+                      {item.name}
+                    </h3>
+                    <div className="text-amber-400 font-bold text-base">
+                      $
+                      {((item.price || 18000) * item.quantity).toLocaleString(
+                        "es-AR",
+                      )}
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => onRemoveItem(item.id)}
-                    className="text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
+                    className="text-neutral-400 hover:text-red-500 bg-white/5 hover:bg-red-500/10 p-2 rounded-md transition-all cursor-pointer"
                     aria-label="Eliminar producto"
                   >
-                    <IoTrashOutline size={14} />
+                    <IoTrashOutline size={20} />
                   </button>
-                  <div className="flex items-center border border-white/10 rounded-sm bg-black/40">
+                </div>
+
+                <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-1">
+                  <span className="text-neutral-500 text-[11px] uppercase tracking-wider">
+                    Cantidad
+                  </span>
+
+                  <div className="flex items-center bg-black/50 border border-white/10 rounded-md overflow-hidden">
                     <button
                       onClick={() =>
                         onUpdateQuantity(item.id, item.quantity - 1)
                       }
-                      className="px-2 py-0.5 text-white/60 hover:text-white transition-colors cursor-pointer text-xs"
+                      className="px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer text-lg font-medium"
                     >
                       -
                     </button>
-                    <span className="px-2 text-xs text-white font-medium">
+                    <span className="px-4 py-1 text-sm text-white font-bold min-w-10 text-center">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() =>
                         onUpdateQuantity(item.id, item.quantity + 1)
                       }
-                      className="px-2 py-0.5 text-white/60 hover:text-white transition-colors cursor-pointer text-xs"
+                      className="px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer text-lg font-medium"
                     >
                       +
                     </button>
@@ -260,13 +269,13 @@ export function CartDrawer({
               <span className="text-neutral-400 tracking-wider uppercase text-xs">
                 Total a abonar:
               </span>
-              <span className="text-amber-500 font-bold text-base tracking-wide">
+              <span className="text-amber-500 font-bold text-xl tracking-wide">
                 ${totalPrice.toLocaleString("es-AR")}
               </span>
             </div>
             <button
               onClick={handleCheckoutWhatsApp}
-              className="cursor-pointer w-full py-4 bg-amber-500 text-black text-[11px] tracking-[0.3em] font-bold hover:bg-amber-600 transition-all duration-300 uppercase rounded-sm active:scale-[0.98] shadow-lg shadow-amber-500/10"
+              className="cursor-pointer w-full py-4 bg-amber-500 text-black text-[11px] tracking-[0.3em] font-bold hover:bg-amber-600 transition-all duration-300 uppercase rounded-md active:scale-[0.98] shadow-lg shadow-amber-500/10"
             >
               Finalizar Pedido por WhatsApp
             </button>
