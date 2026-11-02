@@ -136,20 +136,13 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!nuevaNota.trim()) return;
 
-    const { data } = await supabase
-      .from("notas_admin")
-      .insert([{ texto: nuevaNota }])
-      .select();
+    await supabase.from("notas_admin").insert([{ texto: nuevaNota }]);
 
-    if (data) {
-      setNotas([data[0], ...notas]);
-      setNuevaNota("");
-    }
+    setNuevaNota("");
   };
 
   const completarNota = async (id) => {
     await supabase.from("notas_admin").delete().eq("id", id);
-    setNotas(notas.filter((n) => n.id !== id));
   };
 
   const actualizarStock = async (id, nuevoStock) => {
