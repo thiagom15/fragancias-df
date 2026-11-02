@@ -58,9 +58,6 @@ export function CartDrawer({
 
       return () => {
         window.removeEventListener("popstate", handlePopState);
-        if (window.history.state?.cartOpen) {
-          window.history.back();
-        }
       };
     }
   }, [isOpen, onClose]);
@@ -118,15 +115,29 @@ export function CartDrawer({
 
     if (dragX > DRAG_CLOSE_THRESHOLD || velocity > DRAG_VELOCITY_THRESHOLD) {
       setIsSnappingClose(true);
-      setDragX(window.innerWidth);
+      setDragX(window.innerWidth * 2);
 
       setTimeout(() => {
         onClose();
         setIsSnappingClose(false);
         setDragX(0);
+        dragState.current = {
+          dragging: false,
+          startX: 0,
+          startY: 0,
+          startTime: 0,
+          lockedAxis: null,
+        };
       }, 700);
     } else {
       setDragX(0);
+      dragState.current = {
+        dragging: false,
+        startX: 0,
+        startY: 0,
+        startTime: 0,
+        lockedAxis: null,
+      };
     }
   };
 
