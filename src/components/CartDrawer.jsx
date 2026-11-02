@@ -58,9 +58,6 @@ export function CartDrawer({
 
       return () => {
         window.removeEventListener("popstate", handlePopState);
-        if (window.history.state?.cartOpen) {
-          window.history.back();
-        }
       };
     }
   }, [isOpen, onClose]);
