@@ -34,6 +34,8 @@ export function Navbar() {
   const searchBarRef = useRef(null);
   const resultsRef = useRef(null);
 
+  const skipHistoryBack = useRef(false);
+
   const handleNavigate = useCallback(
     (path) => {
       navigate(path);
@@ -75,9 +77,10 @@ export function Navbar() {
 
       return () => {
         window.removeEventListener("popstate", handlePopState);
-        if (window.history.state?.navbarOpen) {
+        if (window.history.state?.navbarOpen && !skipHistoryBack.current) {
           window.history.back();
         }
+        skipHistoryBack.current = false;
       };
     }
   }, [isAnythingOpen, selectedPerfume]);
