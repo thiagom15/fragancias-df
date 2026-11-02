@@ -4,6 +4,7 @@ import HomePage from "./pages/home/HomePage";
 import CataloguePage from "./pages/catalogue/CataloguePage";
 import { CartDrawer } from "./components/CartDrawer";
 import { CartProvider, useCart } from "./context/CartContext";
+import { Analytics } from "@vercel/analytics/react";
 
 function MainLayout() {
   const {
@@ -46,6 +47,7 @@ export function App() {
   return (
     <CartProvider>
       <MainLayout />
+      <Analytics />
     </CartProvider>
   );
 }
