@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
+import { supabase } from "../supabaseClient";
 
 const CartContext = createContext();
 
@@ -24,6 +25,53 @@ export function CartProvider({ children }) {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  useEffect(() => {
+    const syncCartPrices = async () => {
+      if (cartItems.length === 0) return;
+
+      try {
+        const itemIds = cartItems.map((item) => item.id);
+
+        const { data: updatedProducts, error } = await supabase
+          .from("perfumes")
+          .select("id, price, stock")
+          .in("id", itemIds);
+
+        if (error) throw error;
+        if (!updatedProducts) return;
+
+        let hasChanges = false;
+
+        const newCartItems = cartItems.map((item) => {
+          const currentProduct = updatedProducts.find((p) => p.id === item.id);
+
+          if (currentProduct) {
+            if (
+              currentProduct.price !== item.price ||
+              currentProduct.stock !== item.stock
+            ) {
+              hasChanges = true;
+              return {
+                ...item,
+                price: currentProduct.price,
+                stock: currentProduct.stock,
+              };
+            }
+          }
+          return item;
+        });
+
+        if (hasChanges) {
+          setCartItems(newCartItems);
+        }
+      } catch (err) {
+        console.error("Error sincronizando precios del carrito:", err);
+      }
+    };
+
+    syncCartPrices();
+  }, []);
 
   useEffect(() => {
     try {

@@ -65,19 +65,31 @@ export default function AdminDashboard() {
 
     setActualizandoPrecio(true);
 
-    const { error } = await supabase
-      .from("perfumes")
-      .update({ price: nuevoPrecio })
-      .neq("id", 0);
+    try {
+      const { data: perfumesIds, error: fetchError } = await supabase
+        .from("perfumes")
+        .select("id");
 
-    if (error) {
-      alert("Error al actualizar el precio global.");
-    } else {
+      if (fetchError) throw fetchError;
+
+      const updatePromises = perfumesIds.map((p) =>
+        supabase.from("perfumes").update({ price: nuevoPrecio }).eq("id", p.id),
+      );
+
+      const results = await Promise.all(updatePromises);
+
+      const hasError = results.some((res) => res.error);
+      if (hasError)
+        throw new Error("Algunos perfumes no se pudieron actualizar.");
+
       setPerfumes((prev) => prev.map((p) => ({ ...p, price: nuevoPrecio })));
       alert("¡Precio actualizado con éxito en toda la tienda!");
+    } catch (error) {
+      console.error(error);
+      alert("Error al actualizar el precio global. Revisá la consola.");
+    } finally {
+      setActualizandoPrecio(false);
     }
-
-    setActualizandoPrecio(false);
   };
 
   const agregarNota = async (e) => {
