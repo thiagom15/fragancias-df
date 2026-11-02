@@ -12,6 +12,8 @@ export function FeaturedSection() {
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartX = useRef(0);
 
+  const scrollPosition = useRef(0);
+
   useEffect(() => {
     async function fetchFeaturedPerfumes() {
       try {
@@ -141,6 +143,8 @@ export function FeaturedSection() {
                     key={`${perfume.id}-${index}`}
                     onClick={() => {
                       if (isActive) {
+                        scrollPosition.current = window.scrollY;
+                        window.dispatchEvent(new Event("catalogue-card-click"));
                         setSelectedPerfume(perfume);
                       } else {
                         moveCarousel(offset > 0 ? 1 : -1);
@@ -197,8 +201,17 @@ export function FeaturedSection() {
 
       <ProductDrawer
         isOpen={!!selectedPerfume}
-        onClose={() => setSelectedPerfume(null)}
+        onClose={() => {
+          setSelectedPerfume(null);
+          setTimeout(() => {
+            window.scrollTo({
+              top: scrollPosition.current,
+              behavior: "instant",
+            });
+          }, 10);
+        }}
         perfume={selectedPerfume}
+        origin="search"
       />
     </section>
   );
