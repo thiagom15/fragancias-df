@@ -44,6 +44,44 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "perfumes" },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            setPerfumes((prev) =>
+              prev.map((p) => (p.id === payload.new.id ? payload.new : p)),
+            );
+          } else if (payload.eventType === "INSERT") {
+            setPerfumes((prev) => [...prev, payload.new]);
+          } else if (payload.eventType === "DELETE") {
+            setPerfumes((prev) => prev.filter((p) => p.id !== payload.old.id));
+          }
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notas_admin" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            if (!payload.new.completado) {
+              setNotas((prev) => [payload.new, ...prev]);
+            }
+          } else if (payload.eventType === "DELETE") {
+            setNotas((prev) => prev.filter((n) => n.id !== payload.old.id));
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/admin/login");
@@ -66,18 +104,20 @@ export default function AdminDashboard() {
     setActualizandoPrecio(true);
 
     try {
-      const { data: perfumesIds, error: fetchError } = await supabase
+      const { data: perfumesData, error: fetchError } = await supabase
         .from("perfumes")
         .select("id");
 
       if (fetchError) throw fetchError;
+      if (!perfumesData || perfumesData.length === 0) {
+        throw new Error("No se encontraron perfumes para actualizar.");
+      }
 
-      const updatePromises = perfumesIds.map((p) =>
+      const updatePromises = perfumesData.map((p) =>
         supabase.from("perfumes").update({ price: nuevoPrecio }).eq("id", p.id),
       );
 
       const results = await Promise.all(updatePromises);
-
       const hasError = results.some((res) => res.error);
       if (hasError)
         throw new Error("Algunos perfumes no se pudieron actualizar.");
@@ -295,7 +335,11 @@ export default function AdminDashboard() {
                           -
                         </button>
                         <span
-                          className={`flex-1 text-center font-bold text-base ${perfume.stock > 0 ? "text-green-400" : "text-red-400"}`}
+                          className={`flex-1 text-center font-bold text-base ${
+                            perfume.stock > 0
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }`}
                         >
                           {perfume.stock || 0}
                         </span>
