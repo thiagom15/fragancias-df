@@ -5,7 +5,7 @@ import { WhatsAppButton } from "../../components/WhatsAppButton";
 import { ScrollToTop } from "../../components/ScrollToTopButton";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { useCart } from "../../context/CartContext";
-import { FaMars, FaVenus } from "react-icons/fa";
+import { GenderGlobe } from "../../components/GenderGlobe";
 
 export default function CataloguePage() {
   const [perfumes, setPerfumes] = useState([]);
@@ -158,23 +158,10 @@ export default function CataloguePage() {
                       className="w-full h-full object-contain p-4 sm:p-6 scale-150 sm:scale-125 sm:group-hover:scale-135 transition-transform duration-700"
                     />
 
-                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center justify-center shadow-lg">
-                      {perfume.is_male === true && (
-                        <FaMars className="text-blue-400 text-xs sm:text-sm" />
-                      )}
-
-                      {perfume.is_male === false && (
-                        <FaVenus className="text-pink-400 text-xs sm:text-sm" />
-                      )}
-
-                      {perfume.is_male === null && (
-                        <div className="flex items-center gap-1.5">
-                          <FaMars className="text-blue-400 text-xs sm:text-sm" />
-                          <div className="w-px h-3 bg-white/20"></div>
-                          <FaVenus className="text-pink-400 text-xs sm:text-sm" />
-                        </div>
-                      )}
-                    </div>
+                    <GenderGlobe
+                      isMale={perfume.is_male}
+                      className="absolute bottom-2 left-2"
+                    />
                   </div>
                   <div className="bg-black/40 py-1.5 px-2 sm:px-3 text-center text-neutral-500 text-[9px] sm:text-[11px] tracking-wider uppercase border-t border-b border-white/5">
                     Imágen ilustrativa

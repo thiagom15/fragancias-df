@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { ProductDrawer } from "./ProductDrawer";
 import { SkeletonCard } from "./SkeletonCard";
+import { GenderGlobe } from "./GenderGlobe";
 
 export function FeaturedSection() {
   const [perfumes, setPerfumes] = useState([]);
@@ -164,6 +165,11 @@ export function FeaturedSection() {
                         className={`w-full h-full object-contain transition-transform duration-700 ${
                           isActive ? "scale-110" : "scale-100"
                         }`}
+                      />
+
+                      <GenderGlobe
+                        isMale={perfume.is_male}
+                        className="absolute bottom-3 left-3"
                       />
                     </div>
 

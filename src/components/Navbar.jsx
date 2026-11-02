@@ -6,6 +6,7 @@ import { ProductDrawer } from "./ProductDrawer";
 import { SkeletonCard } from "./SkeletonCard";
 import { useCart } from "../context/CartContext";
 import { supabase } from "../supabaseClient";
+import { GenderGlobe } from "./GenderGlobe";
 import {
   FaInstagram,
   FaPhoneAlt,
@@ -393,6 +394,11 @@ export function Navbar() {
                             src={perfume.image_url}
                             alt={perfume.name}
                             className="w-full scale-150 h-full object-contain p-3 transition-transform duration-700 group-hover:scale-145"
+                          />
+
+                          <GenderGlobe
+                            isMale={perfume.is_male}
+                            className="absolute bottom-2 left-2"
                           />
                         </div>
                         <div className="bg-black/40 py-1 px-2 text-center text-neutral-500 text-[9px] tracking-wider uppercase border-t border-b border-white/5">
