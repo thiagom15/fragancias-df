@@ -1,10 +1,48 @@
+import { useState, useEffect } from "react";
 import { Navbar, Footer } from "./components";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import HomePage from "./pages/home/HomePage";
 import CataloguePage from "./pages/catalogue/CataloguePage";
 import { CartDrawer } from "./components/CartDrawer";
 import { CartProvider, useCart } from "./context/CartContext";
 import { Analytics } from "@vercel/analytics/react";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import { supabase } from "./supabaseClient";
+
+function ProtectedRoute({ children }) {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Verificando acceso...
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+}
 
 function MainLayout() {
   const {
@@ -46,7 +84,20 @@ function MainLayout() {
 export function App() {
   return (
     <CartProvider>
-      <MainLayout />
+      <Routes>
+        <Route path="/admin/login" element={<AdminLogin />} />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<MainLayout />} />
+      </Routes>
       <Analytics />
     </CartProvider>
   );
